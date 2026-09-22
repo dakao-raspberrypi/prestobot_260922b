@@ -1,0 +1,110 @@
+# SLAM REAL ROBOT
+
+sudo dmesg | grep ttyUSB
+
+ros2 launch prestobot_bringup slam_realrobot.launch.xml lidar_port:=/dev/ttyUSB0 arduino_port:=/dev/ttyUSB1
+
+ros2 run rviz2 rviz2 -d ~/prestobot_ws/src/prestobot_bringup/rviz/slam_config.rviz
+
+ros2 launch teleop_twist_joy teleop-launch.py \
+joy_config:='xbox' \
+config_filepath:=/home/dakao/prestobot_ws/src/prestobot_bringup/config/xbox_config.yaml \
+joy_vel:=/diff_drive_controller/cmd_vel \
+publish_stamped_twist:=true
+
+ros2 run nav2_map_server map_saver_cli -f ~/maps/MAP_NAME
+
+####################################################################################################
+# NAVIGATION REAL ROBOT
+
+ros2 launch prestobot_bringup navigation_realrobot.launch.xml lidar_port:=/dev/ttyUSB1 arduino_port:=/dev/ttyUSB0
+
+ros2 run rviz2 rviz2 -d ~/prestobot_ws/src/prestobot_navigation/rviz/navigation_config.rviz
+
+####################################################################################################
+# SLAM SIMULATION
+
+ros2 launch prestobot_bringup slam_simulation.launch.xml
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -r cmd_vel:=diff_drive_controller/cmd_vel
+
+ros2 run nav2_map_server map_saver_cli -f ~/maps/MAP_NAME
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# SLAM MANUAL
+
+ros2 launch prestobot_description robot_description.launch.xml
+ros2 launch prestobot_controller ros2_control.launch.py
+ros2 launch prestobot_simulation gazebo.launch.xml
+ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true
+ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true
+ros2 run rviz2 rviz2 -d ~/prestobot_ws/src/prestobot_bringup/rviz/slam_config.rviz
+
+ros2 launch sllidar_ros2 sllidar_c1_launch.py serial_port:=/dev/ttyUSB1
+
+ros2 run prestobot_py_pkg mpu6050_driver
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -r cmd_vel:=diff_drive_controller/cmd_vel
+
+ros2 launch teleop_twist_joy teleop-launch.py \
+joy_config:='xbox' \
+config_filepath:=/home/dakao/prestobot_ws/src/prestobot_bringup/config/xbox_config.yaml \
+joy_vel:=/diff_drive_controller/cmd_vel \
+publish_stamped_twist:=true
+
+ros2 run nav2_map_server map_saver_cli -f ~/maps/first_test
+
+# SLAM BRINGUP
+
+ros2 launch prestobot_bringup slam.launch.xml
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -r cmd_vel:=diff_drive_controller/cmd_vel
+
+ros2 run nav2_map_server map_saver_cli -f ~/maps/first_test
+
+# MANUAL NAVIGATION
+
+ros2 launch prestobot_description robot_description.launch.xml
+ros2 launch prestobot_controller ros2_control.launch.py
+ros2 launch prestobot_simulation gazebo.launch.xml
+ros2 launch prestobot_navigation navigation.launch.xml
+ros2 run rviz2 rviz2 -d /home/dakao/prestobot_ws/src/prestobot_navigation/rviz/navigation_config.rviz
+ros2 run prestobot_py_pkg hmi
+
+# BRINGUP NAVIGATION
+
+ros2 launch prestobot_bringup bringup.launch.xml
+
+# TEST LIDAR
+
+ros2 launch sllidar_ros2 sllidar_c1_launch.py
+
+ros2 run rviz2 rviz2 -d /home/dakao/prestobot_ws/src/sllidar_ros2/rviz/sllidar_ros2.rviz 
+
+# TEST JOYSTICK
+
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox'
+
+ros2 run twist_stamper twist_stamper --ros-args -r cmd_vel_in:=/cmd_vel -r cmd_vel_out:=/diff_drive_controller/cmd_vel -p use_sim_time:=true
+
+
+
+ros2 run topic_tools relay --ros-args -p input_topic:=/cmd_vel  -p output_topic:=/diff_drive_controller/cmd_vel
+
+ros2 launch nav2_bringup bringup_launch.py use_sim_time:=true map:=~/prestobot_ws/src/prestobot_navigation/maps/map.yaml params_file:=/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml 
+
+ros2 launch nav2_bringup bringup_launch.py use_sim_time:=true map:=/home/dakao/prestobot_ws/src/prestobot_navigation/maps/map.yaml params_file:=/home/dakao/prestobot_ws/src/prestobot_navigation/config/prestobot_navigation.yaml

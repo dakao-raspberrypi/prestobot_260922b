@@ -1,0 +1,32 @@
+<launch>
+
+    <!-- Robot arguments -->
+    <arg name="urdf_path" default="$(find-pkg-share prestobot_description)/urdf/prestobot.urdf.xacro" />
+    <arg name="is_sim" default="false" />
+    <arg name="arduino_port" default="/dev/ttyUSB1" />
+    <!-- Hardware arguments -->
+    <arg name="ros2_control_config" default="$(find-pkg-share prestobot_controller)/config/prestobot_controller.yaml" />
+    <arg name="lidar_port" default="/dev/ttyUSB0" />
+    <!-- Let variables for cleaner paths and commands -->
+    <let name="rviz_config_path" value="$(find-pkg-share prestobot_description)/rviz/urdf_config.rviz" />
+
+    <!-- Launch robot description -->
+    <include file="$(find-pkg-share prestobot_description)/launch/robot_description.launch.xml" >
+        <arg name="is_sim" value="$(var is_sim)" />
+        <arg name="urdf_path" value="$(var urdf_path)" />
+        <arg name="port" value="$(var arduino_port)" />
+    </include>
+
+    <!-- Launch robot hardware -->
+    <include file="$(find-pkg-share prestobot_hardware)/launch/hardware.launch.xml" >
+        <arg name="lidar_port" value="$(var lidar_port)" />
+        <arg name="ros2_control_config" value="$(var ros2_control_config)" />
+    </include>
+
+    <!-- Launch robot controllers -->
+    <include file="$(find-pkg-share prestobot_controller)/launch/controller.launch.xml" />
+
+    <!-- RViz2 3D Visualizer -->
+    <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_config_path)" />
+
+</launch>

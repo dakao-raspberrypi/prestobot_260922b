@@ -1,0 +1,30 @@
+<launch>
+
+     <!-- Navigation arguments -->
+     <arg name="use_sim_time" default="false" />
+     <arg name="output_topic" default="/diff_drive_controller/cmd_vel" />
+     <arg name="map_path" default="$(find-pkg-share prestobot_bringup)/maps/LR001.yaml" />
+
+     <!-- Paths -->
+     <let name="navigation_config_path" value="$(find-pkg-share prestobot_navigation)/config/prestobot_navigation.yaml" />
+
+     <!-- Main Nav2 Bringup -->
+     <include file="$(find-pkg-share nav2_bringup)/launch/bringup_launch.py">
+          <arg name="map" value="$(var map_path)" />
+          <arg name="params_file" value="$(var navigation_config_path)" />
+          <arg name="use_sim_time" value="$(var use_sim_time)" />
+     </include>
+
+     <!-- My custom topic relay node -->
+     <!-- Nav2 stack publishes to /cmd_vel -->
+     <!-- diff_drive_controller subscribes to /diff_drive_controller/cmd_vel -->
+     <node pkg="prestobot_py_pkg" exec="topic_relay">
+          <param name="input_topic" value="/cmd_vel" />
+          <param name="output_topic" value="$(var output_topic)" />
+          <param name="message_type" value="geometry_msgs/msg/TwistStamped" />
+     </node>
+
+     <!-- My custom node to set the initial pose -->
+     <node pkg="prestobot_py_pkg" exec="set_initial_pose" />
+
+</launch>

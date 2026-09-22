@@ -1,0 +1,2661 @@
+# LINK
+
+https://docs.ros.org/en/jazzy/index.html
+https://github.com/ros2
+https://roboticsbackend.com/
+
+
+
+# INSTALL ROS 2 JAZZY: https://docs.ros.org/en/jazzy/Installation.html
+
+sudo apt install gedit terminator neofetch htop chromium-browser
+sudo snap install code --classic
+
+locale  # check for UTF-8
+
+sudo apt update && sudo apt install locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+locale  # verify settings
+
+sudo apt install software-properties-common
+sudo add-apt-repository universe
+
+sudo apt update && sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+sudo apt update && sudo apt install ros-dev-tools
+
+sudo apt update
+sudo apt upgrade
+
+sudo apt install ros-jazzy-desktop
+
+# SOURCE ROS2
+
+cd ~/
+gedit .bashrc
+# paste: source /opt/ros/jazzy/setup.bash
+# save, close
+
+# EXAMPLES
+
+ros2 run demo_nodes_cpp talker
+ros2 run demo_nodes_py listener
+
+# UNINSTALL
+
+sudo apt remove ~nros-jazzy-* && sudo apt autoremove
+
+sudo rm /etc/apt/sources.list.d/ros2.list
+sudo apt update
+sudo apt autoremove
+# Consider upgrading for packages previously shadowed.
+sudo apt upgrade
+########################################################################
+# CREATE ROS2 WORKSPACE
+
+cd ~/
+mkdir ros2_ws
+cd ~/ros2_ws/
+mkdir src
+cd ~/ros2_ws/
+colcon build
+
+# SOURCE WORKSPACE
+
+cd ~/
+gedit .bashrc
+# paste: source /home/khiem/ros2_ws/install/setup.bash
+# save, close
+
+# DOWNLOAD VISUAL STUDIO CODE
+
+https://code.visualstudio.com/Download#
+
+# CREATE PYTHON PACKAGE
+
+cd ~/ros2_ws/src/
+ros2 pkg create my_py_pkg --build-type ament_python --dependencies rclpy
+code .
+
+# BUILD PYTHON PACKAGE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+
+# CREATE NEW PYTHON FILE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch my_first_node.py
+cd ~/ros2_ws/src/
+code .
+
+# HELLO WORLD CODE, file's name: my_first_node.py
+                    node's name: py_test
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = Node("py_test")
+    node.get_logger().info("Hello world")
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()
+
+# THEN, RUN THE HELLO WORLD CODE WITH PYTHON3
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+python3 my_first_node.py
+
+# OR MAKE THE CODE EXECUTABLE
+
+chmod +x my_first_node.py
+./my_first_node.py
+
+# GO TO setup.py, CREATE AN EXECUTABLE NAME: py_node
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main"
+        ],
+    }
+
+# BUILD  AGAIN
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+cd
+
+# SOURCE AGAIN AFTER CREATE SOMETHING NEW IN WORKSPACE, OR OPEN NEW TERMINAL SO THAT IT WILL DO AUTOMATICALLY
+
+source ~/.bashrc
+
+# OR
+
+source ~/ros2_ws/install/setup.bash
+
+# START A NODE
+
+ros2 run my_py_pkg py_node
+########################################################################
+# WRITE PYTHON NODE WITH OOP (OBJECT ORIENTED PROGRAMMING)
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+
+
+class MyNode(Node):
+    
+    def __init__(self):
+        super().__init__("py_test")
+        self.counter_ = 0
+        self.get_logger().info("Hello world")
+        self.create_timer(1.0, self.timer_callback)
+    
+    def timer_callback(self):
+        self.get_logger().info("Hello " +  str(self.counter_))
+        self.counter_ += 1
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MyNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+ros2 run my_py_pkg py_node
+########################################################################
+# TEMPLATE PYTHON NODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+
+
+class MyCustomNode(Node):   # MODIFY NAME
+    def __init__(self):
+        super().__init__("node_name")   # MODIFY NAME
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MyCustomNode()   # MODIFY NAME
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+########################################################################
+# TAB TWICE FOR SUGGESTION
+# ROS2 TOOLS
+
+cd ~/
+cat .bashrc
+
+cd ~/ros2_ws/src/
+ros2 pkg create my_py_pkg --build-type ament_python --dependencies rclpy
+ros2 pkg create my_robot_interfaces
+
+ros2 run -h
+ros2 run --help
+ros2 run package_name executable_name
+ros2 run demo_nodes_cpp talker
+ros2 run my_py_pkg py_node
+
+ros2 node -h
+ros2 node --help
+ros2 node list
+ros2 node info /node_name
+ros2 node info /py_test
+
+ros2 topic list
+ros2 topic info /robot_news
+ros2 topic echo /robot_news
+ros2 topic hz /robot_news
+ros2 topic bw /robot_news
+ros2 topic pub -r times_per_second /topic_name data_type "{data: your_messages}"
+ros2 topic pub -r 5 /robot_news example_interfaces/msg/String "{data: 'Hello from terminal'}"
+ros2 topic pub -r 2 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0}, angular: {z: 1.0}}"
+
+ros2 interface show example_interfaces/msg/String
+ros2 interface show example_interfaces/msg/Int64
+ros2 interface show example_interfaces/srv/AddTwoInts
+ros2 interface list
+ros2 interface package package_name
+ros2 interface package my_robot_interfaces
+ros2 interface package sensor_msgs
+ros2 interface show sensor_msgs/msg/MagneticField
+
+ros2 service -h
+ros2 service --help
+ros2 service list
+ros2 service type /service_name
+ros2 service type /add_two_ints
+ros2 service call /service_name interface_name "{request_data}"
+ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts "{a: 3, b: 7}"
+rqt -> Plugin -> Services -> Service Caller
+
+ros2 param -h
+ros2 param --help
+ros2 param list
+ros2 param describe /node_name parameter_names
+ros2 param describe /number_publisher number
+
+# RENAME A NODE/TOPIC/SERVICE AT RUNTIME
+# NODE
+ros2 run package_name node_name --ros-args -r __node:=new_node_name
+ros2 run package_name node_name --ros-args --remap __node:=new_node_name
+ros2 run my_py_pkg py_node --ros-args -r __node:=abc
+
+# TOPIC
+ros2 run package_name node_name --ros-args -r old_topic_name:=new_topic_name
+ros2 run package_name node_name --ros-args --remap old_topic_name:=new_topic_name
+ros2 run my_py_pkg robot_news_station --ros-args -r robot_news:=abc
+
+# SERVICE
+ros2 run package_name node_name --ros-args -r old_service_name:=new_service_name
+ros2 run package_name node_name --ros-args --remap old_service_name:=new_service_name
+ros2 run my_py_pkg add_two_ints_server --ros-args -r add_two_ints:=abc
+
+# BOTH
+ros2 run package_name node_name --ros-args -r __node:=new_node_name -r old_topic_name:=new_topic_name
+ros2 run package_name node_name --ros-args --remap __node:=new_node_name --remap old_topic_name:=new_topic_name
+ros2 run my_py_pkg robot_news_station --ros-args -r __node:=my_station -r robot_news:=abc
+
+# PARAMETERS
+ros2 run my_py_pkg node_name --ros-args -p first_parameter_name:=first_value -p second_parameter_name:=second_value
+ros2 run my_py_pkg number_publisher --ros-args -p number:=7 -p timer_period:=2.0
+
+# COLCON, ALWAYS BUILD AGAIN AFTER EDIT FILES, THEN SOURCE
+
+cd ~/ros2_ws/
+colcon build
+colcon build --packages-select my_py_pkg
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+# RQT
+
+rqt -> Enter -> Introspection -> Node Graph
+rqt_graph
+
+# tick on Debug, select Nodes/Topics (all), click on Refresh symbol
+
+# TURTLESIM
+
+sudo apt install ros-distro-turtlesim
+sudo apt install ros-jazzy-turtlesim
+
+ros2 run turtlessim turtlesim_node
+ros2 run turtlessim turtle_teleop_key
+ros2 service list
+
+ros2 service type /clear
+ros2 interface show std_srvs/srv/Empty
+ros2 service call /clear std_srvs/srv/Empty "{}"
+
+ros2 service type /spawn
+ros2 interface show turtlesim/srv/Spawn
+ros2 service call /spawn turtlesim/srv/Spawn "{x: 5.0, y: 5.0, name: 'my_turtle'}"
+
+ros2 service type /kill
+ros2 interface show turtlesim/srv/Kill
+ros2 service call /kill turtlesim/srv/Kill "{name: 'my_turtle'}"
+
+ros2 run turtlessim turtlesim_node
+ros2 param list
+ros2 param get /turtlesim background_g
+
+ros2 run turtlessim turtlesim_node --ros-args -p background_b:=0
+
+ros2 service list
+ros2 service type /turtlesim/list_parameters
+ros2 interface show rcl_interfaces/srv/ListParameters
+ros2 service call /turtlesim/list_parameters rcl_interfaces/srv/ListParameters
+########################################################################
+# ROS2 BAGS FOR REPLAY
+
+ros2 run my_py_pkg number_publisher
+ros2 run my_py_pkg number_counter
+ros2 topic list
+
+cd ~/
+mkdir bags
+cd ~/bags/
+
+ros2 bag --help
+ros2 bag -h
+ros2 bag record /number_count
+
+cd ~/bags/
+ls
+cd ~/bags/rosbag2_year_month_day-hour_minute_second/
+ls
+cat metadata.yaml
+
+cd ~/bags/
+ros2 bag record -o test /number_count
+ls
+cd ~/bags/test/
+ls
+
+cd ~/bags/
+ros2 bag info test
+ros2 bag play test
+
+cd ~/bags/
+ros2 bag record -o test1 /number_count /number
+ros2 bag record -o test2 -a
+########################################################################
+# PUBLISHER -> TOPIC -> SUBSCRIPTION
+# CREATE A PYTHON PUBLISHER NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch robot_news_station.py
+chmod +x robot_news_station.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# PUBLISHER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import String
+
+class RobotNewsStationNode(Node):
+    def __init__(self):
+        super().__init__("robot_news_station")
+        self.robot_name_ = "C3P0"
+        self.publisher_ = self.create_publisher(String, "robot_news", 10)
+        self.timer_ = self.create_timer(0.5, self.publish_news)
+        self.get_logger().info("Robot News Station has been started.")
+    
+    def publish_news(self):
+        msg = String()
+        msg.data = "Hi, this is " + self.robot_name_ + " from the robot news station."
+        self.publisher_.publish(msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = RobotNewsStationNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: robot_news_station
+
+entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "robot_news_station = my_py_pkg.robot_news_station:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg robot_news_station
+ros2 topic echo /robot_news
+
+# CREATE A PYTHON SUBSCRIBER NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch smartphone.py
+chmod +x smartphone.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# SUBSCRIBER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import String
+
+class SmartphoneNode(Node):
+    def __init__(self):
+        super().__init__("smartphone")
+        self.subscriber_ = self.create_subscription(
+            String, "robot_news", self.callback_robot_news, 10)
+        self.get_logger().info("Smartphone has been started.")
+
+    
+    def callback_robot_news(self, msg: String):
+        self.get_logger().info(msg.data)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = SmartphoneNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: smartphone
+
+entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "smartphone = my_py_pkg.smartphone:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg robot_news_station
+ros2 run my_py_pkg smartphone
+########################################################################
+# ACTIVITY 2: NUMBER PUBLISHER NODE AND NUMBER COUNTER NODE
+# CREATE A PYTHON NUMBER PUBLISHER NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch number_publisher.py
+chmod +x number_publisher.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# NUMBER PUBLISHER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import Int64
+
+class NumberPublisherNode(Node):
+    def __init__(self):
+        super().__init__("number_publisher")
+        self.number_ = 2
+        self.number_publisher_ = self.create_publisher(Int64, "number", 10)
+        self.number_timer_ = self.create_timer(1.0, self.publish_number)
+        self.get_logger().info("Number publisher has been started.")
+    
+    def publish_number(self):
+        msg = Int64()
+        msg.data = self.number_
+        self.number_publisher_.publish(msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberPublisherNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: number_publisher
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "number_publisher = my_py_pkg.number_publisher:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg number_publisher
+ros2 topic echo /number
+
+# CREATE A PYTHON NUMBER COUNTER NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch number_counter.py
+chmod +x number_counter.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# NUMBER COUNTER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import Int64
+
+class NumberCounterNode(Node):
+    def __init__(self):
+        super().__init__("number_counter")
+        self.counter_ = 0
+        self.number_count_publisher_ = self.create_publisher(
+            Int64, "number_count", 10)
+        self.number_subscriber_ = self.create_subscription(
+            Int64, "number", self.callback_number, 10)
+        self.get_logger().info("Number counter has been started.")
+    
+    def callback_number(self, msg: Int64):
+        self.counter_ += msg.data
+        new_msg = Int64()
+        new_msg.data = self.counter_
+        self.number_count_publisher_.publish(new_msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberCounterNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: number_counter
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "number_counter = my_py_pkg.number_counter:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg number_publisher
+ros2 run my_py_pkg number_counter
+########################################################################
+# CLIENT(request)  -> SERVICE -> SERVER
+# SERVER(response) -> SERVICE -> CLIENT
+
+ros2 interface show example_interfaces/srv/AddTwoInts
+
+# CREATE A PYTHON ADD TWO INTS SERVER NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch add_two_ints_server.py
+chmod +x add_two_ints_server.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# ADD TWO INTS SERVER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.srv import AddTwoInts
+
+class AddTwoIntsServerNode(Node):
+    def __init__(self):
+        super().__init__("add_two_ints_server")
+        self.server_ = self.create_service(
+            AddTwoInts, "add_two_ints", self.callback_add_two_ints)
+        self.get_logger().info("Add Two Ints server has been started.")
+    
+    def callback_add_two_ints(self, request: AddTwoInts.Request, response: AddTwoInts.Response):
+        response.sum = request.a + request.b
+        self.get_logger().info(str(request.a) + " + " + 
+                               str(request.b) + " = " + str(response.sum))
+        return response
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = AddTwoIntsServerNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: add_two_ints_server
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "add_two_ints_server = my_py_pkg.add_two_ints_server:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg add_two_ints_server
+ros2 node list
+ros2 node info /add_two_ints_server
+ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts "{a: 3, b: 7}"
+
+# CREATE A PYTHON ADD TWO INTS CLIENT NO OOP NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch add_two_ints_client_no_oop.py
+chmod +x add_two_ints_client_no_oop.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# ADD TWO INTS CLIENT NO OOP CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.srv import AddTwoInts
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = Node("add_two_ints_client_no_oop")
+
+    client = node.create_client(AddTwoInts, "add_two_ints")
+    while not client.wait_for_service(1.0):
+        node.get_logger().warn("Waiting for Add Two Ints server...")
+    
+    request = AddTwoInts.Request()
+    request.a = 3
+    request.b = 8
+
+    future = client.call_async(request)
+    rclpy.spin_until_future_complete(node, future)
+
+    response = future.result()
+    node.get_logger().info(str(request.a) + " + " + 
+                           str(request.b) + " = " + str(response.sum))
+
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: add_two_ints_client_no_oop
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "add_two_ints_client_no_oop = my_py_pkg.add_two_ints_client_no_oop:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg add_two_ints_server
+ros2 run my_py_pkg add_two_ints_client_no_oop
+
+# CREATE A PYTHON ADD TWO INTS CLIENT NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch add_two_ints_client.py
+chmod +x add_two_ints_client.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# ADD TWO INTS CLIENT CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.srv import AddTwoInts
+from functools import partial
+
+class AddTwoIntClientNode(Node):
+    def __init__(self):
+        super().__init__("add_two_ints_client")
+        self.client_ = self.create_client(AddTwoInts, "add_two_ints")
+    
+    def call_add_two_ints(self, a, b):
+        while not self.client_.wait_for_service(1.0):
+            self.get_logger().warn("Waiting for Add Two Ints server...")
+        
+        request = AddTwoInts.Request()
+        request.a = a
+        request.b = b
+
+        future = self.client_.call_async(request)
+        future.add_done_callback(
+            partial(self.callback_call_add_two_ints, request=request))
+    
+    def callback_call_add_two_ints(self, future, request):
+        response = future.result()
+        self.get_logger().info(str(request.a) + " + " + 
+                               str(request.b) + " = " + str(response.sum))
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = AddTwoIntClientNode()
+    node.call_add_two_ints(3, 8)
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>example_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: add_two_ints_client
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "add_two_ints_client = my_py_pkg.add_two_ints_client:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg add_two_ints_server
+ros2 run my_py_pkg add_two_ints_client
+########################################################################
+# ACTIVITY 3: ROS2 SERVICE RESET COUNTER
+
+# RESET COUNTER SERVICE CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import Int64
+from example_interfaces.srv import SetBool
+
+class NumberCounterNode(Node):
+    def __init__(self):
+        super().__init__("number_counter")
+        self.counter_ = 0
+        self.number_count_publisher_ = self.create_publisher(
+            Int64, "number_count", 10)
+        self.number_subscriber_ = self.create_subscription(
+            Int64, "number", self.callback_number, 10)
+        self.reset_counter_ = self.create_service(
+            SetBool, "reset_counter",self.callback_reset_counter)
+        self.get_logger().info("Number counter has been started.")
+    
+    def callback_number(self, msg: Int64):
+        self.counter_ += msg.data
+        new_msg = Int64()
+        new_msg.data = self.counter_
+        self.number_count_publisher_.publish(new_msg)
+    
+    def callback_reset_counter(self, request: SetBool.Request, response: SetBool.Response):
+        if request.data:
+            self.counter_ = 0
+            response.success = True
+            response.message = "Counter has been reset"
+        else:
+            response.success = False
+            response.message = "Counter has not been reset"
+        return response
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberCounterNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg number_publisher
+ros2 run my_py_pkg number_counter
+ros2 topic list
+ros2 topic echo /number_count
+
+ros2 service list
+ros2 service info /reset_counter
+ros2 service type /reset_counter
+ros2 service call /reset_counter example_interfaces/srv/SetBool "{data: True}"
+ros2 service call /reset_counter example_interfaces/srv/SetBool "{data: False}"
+########################################################################
+# ROS2 INTERFACES
+
+https://docs.ros.org/en/jazzy/Concepts/Basic/About-Interfaces.html
+https://github.com/ros2
+-> Repositories -> Search repositories -> example_interfaces
+
+cd ~/ros2_ws/src/
+ros2 pkg create my_robot_interfaces
+
+cd ~/ros2_ws/src/my_robot_interfaces/
+rm -r include/ src/
+
+cd ~/ros2_ws/src/
+code .
+
+# OPEN package.xml, PASTE:
+
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+# OPEN CMakeLists.txt, DELETE:
+
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+# CREATE CUSTOM MSG
+
+cd ~/ros2_ws/src/my_robot_interfaces/
+mkdir msg
+cd ~/ros2_ws/src/my_robot_interfaces/msg/
+touch HardwareStatus.msg
+cd ~/ros2_ws/src/
+code .
+
+# CUSTOM MSG CODE
+
+float64 temperature
+bool are_motor_ready
+string debug_message
+
+# OPEN CMakeLists.txt, PASTE:
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/HardwareStatus.msg"
+)
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_interfaces
+cd ~/
+source .bashrc
+ros2 interface show my_robot_interfaces/msg/HardwareStatus
+
+# CREATE CUSTOM SRV
+
+cd ~/ros2_ws/src/my_robot_interfaces/
+mkdir srv
+cd ~/ros2_ws/src/my_robot_interfaces/srv/
+touch ComputeRectangleArea.srv
+cd ~/ros2_ws/src/
+code .
+
+# CUSTOM SRV CODE
+
+float64 length
+float64 width
+---
+float64 area
+
+# OPEN CMakeLists.txt, PASTE:
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/ComputeRectangleArea.srv"
+)
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_interfaces
+cd ~/
+source .bashrc
+ros2 interface show my_robot_interfaces/srv/ComputeRectangleArea
+########################################################################
+# CREATE A PYTHON PUBLISHER NODE WITH CUSTOM INTERFACES
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch hardware_status_publisher.py
+chmod +x hardware_status_publisher.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# PUBLISHER WITH CUSTOM INTERFACES CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from my_robot_interfaces.msg import HardwareStatus
+
+class HardwareStatusPublisherNode(Node):
+    def __init__(self):
+        super().__init__("hardware_status_publisher")
+        self.hw_status_pub_ = self.create_publisher(HardwareStatus, "hardware_status", 10)
+        self.timer_ = self.create_timer(1.0, self.publish_hardware_status)
+        self.get_logger().info("Hardware Status Publisher has been started.")
+    
+    def publish_hardware_status(self):
+        msg = HardwareStatus()
+        msg.temperature = 43.7
+        msg.are_motor_ready = True
+        msg.debug_message = "Nothing special"
+        self.hw_status_pub_.publish(msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = HardwareStatusPublisherNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>my_robot_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: hardware_status
+
+entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "hardware_status = my_py_pkg.hardware_status:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg hw_status_publisher
+ros2 topic list
+ros2 topic echo /hardware_status
+########################################################################
+# ACTIVITY 4: TOPIC, SERVICE WITH CUSTOM INTERFACES
+
+# CREATE CUSTOM MSG
+
+cd ~/ros2_ws/src/my_robot_interfaces/msg/
+touch LedStateArray.msg
+cd ~/ros2_ws/src/
+code .
+
+# MSG CODE
+
+int64[] led_states
+
+# OPEN CMakeLists.txt, PASTE:
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/LedStateArray.msg"
+)
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_interfaces
+cd ~/
+source .bashrc
+ros2 interface show my_robot_interfaces/msg/LedStateArray
+
+# CREATE A PYTHON LED PANEL PUBLISHER NODE WITH CUSTOM INTERFACES
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch led_panel.py
+chmod +x led_panel.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# PYTHON LED PANEL PUBLISHER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from my_robot_interfaces.msg import LedStateArray
+
+class LEDPanelNode(Node):
+    def __init__(self):
+        super().__init__("led_panel")
+        self.led_states_ = [0, 0, 0]
+        self.led_states_pub_ = self.create_publisher(
+            LedStateArray, "led_panel_state", 10)
+        self.timer_ = self.create_timer(
+            5.0, self.publish_led_sates)
+        self.get_logger().info("LED panel node has been started.")
+    
+    def publish_led_sates(self):
+        msg = LedStateArray()
+        msg.led_states = self.led_states_
+        self.led_states_pub_.publish(msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = LEDPanelNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>my_robot_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: hardware_status
+
+entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "led_panel = my_py_pkg.led_panel:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg led_panel
+ros2 topic list
+ros2 topic echo /led_panel_state
+
+# CREATE CUSTOM SRV
+
+cd ~/ros2_ws/src/my_robot_interfaces/srv/
+touch SetLed.srv
+cd ~/ros2_ws/src/
+code .
+
+# SRV CODE
+
+int64 led_number
+int64 state
+---
+bool success
+
+# OPEN CMakeLists.txt, PASTE:
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/SetLed.srv"
+)
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_interfaces
+cd ~/
+source .bashrc
+ros2 interface show my_robot_interfaces/srv/SetLed
+
+# PYTHON LED PANEL SERVER CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from my_robot_interfaces.msg import LedStateArray
+from my_robot_interfaces.srv import SetLed
+
+class LEDPanelNode(Node):
+    def __init__(self):
+        super().__init__("led_panel")
+        self.led_states_ = [0, 0, 0]
+        self.led_states_pub_ = self.create_publisher(
+            LedStateArray, "led_panel_state", 10)
+        self.timer_ = self.create_timer(
+            5.0, self.publish_led_sates)
+        self.set_led_service_ = self.create_service(
+            SetLed, "set_led", self.callback_set_led)
+        self.get_logger().info("LED panel node has been started.")
+    
+    def publish_led_sates(self):
+        msg = LedStateArray()
+        msg.led_states = self.led_states_
+        self.led_states_pub_.publish(msg)
+    
+    def callback_set_led(self, request: SetLed.Request, response: SetLed.Response):
+        led_number = request.led_number
+        state = request.state
+
+        if led_number >= len(self.led_states_) or led_number < 0:
+            response.success = False
+            return response
+        
+        if state not in [0, 1]:
+            response.success = False
+            return response
+        
+        self.led_states_[led_number] = state
+        self.publish_led_sates()
+        response.success = True
+        return response
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = LEDPanelNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>my_robot_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: led_panel
+
+entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "led_panel = my_py_pkg.led_panel:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg led_panel
+ros2 topic list
+ros2 topic echo /led_panel_state
+
+
+ros2 service list
+ros2 service call /set_led my_robot_interfaces/srv/SetLed "{led_number: 2, state: 1}"
+
+# CREATE A PYTHON BATTERY CLIENT NODE
+
+cd ~/ros2_ws/src/my_py_pkg/my_py_pkg/
+touch battery.py
+chmod +x battery.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# BATTERY CLIENT CODE
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from my_robot_interfaces.srv import SetLed
+
+
+class BatteryNode(Node):
+    def __init__(self):
+        super().__init__("battery")
+        self.battery_state_ = "full"
+        self.last_time_battery_state_changed_ = self.get_current_time_seconds()
+        self.batter_timer_ = self.create_timer(0.1, self.check_battery_state)
+        self.set_led_client_ = self.create_client(SetLed, "set_led")
+        self.get_logger().info("Battery node has been started.")
+    
+    def get_current_time_seconds(self):
+        seconds, nanoseconds = self.get_clock().now().seconds_nanoseconds()
+        return seconds + nanoseconds/1000000000.0
+
+    def check_battery_state(self):
+        time_now = self.get_current_time_seconds()
+        if self.battery_state_ == "full":
+            if time_now - self.last_time_battery_state_changed_ > 4.0:
+                self.battery_state_ = "empty"
+                self.get_logger().info("Battery is empty! Charging...")
+                self.call_set_led(2, 1)
+                self.last_time_battery_state_changed_ = time_now
+        elif self.battery_state_ == "empty":
+            if time_now - self.last_time_battery_state_changed_ > 6.0:
+                self.battery_state_ = "full"
+                self.get_logger().info("Battery is now full.")
+                self.call_set_led(2, 0)
+                self.last_time_battery_state_changed_ = time_now
+    
+    def call_set_led(self, led_number, state):
+        while not self.set_led_client_.wait_for_service(1.0):
+            self.get_logger().info("Waiting for Set Led service...")
+        
+        request = SetLed.Request()
+        request.led_number = led_number
+        request.state = state
+
+        future = self.set_led_client_.call_async(request)
+        future.add_done_callback(self.callback_call_set_led)
+    
+    def callback_call_set_led(self, future):
+        response: SetLed.Response = future.result()
+        if response.success:
+            self.get_logger().info("LED state was chaged")
+        else:
+            self.get_logger().info("LED not changed")
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = BatteryNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# GO TO FILE pakage.xml, ADD DEPENDENCIES:
+
+  <depend>rclpy</depend>
+  <depend>my_robot_interfaces</depend>
+
+# GO TO FILE setup.py, ADD EXECUABLE NAME: battery
+
+    entry_points={
+        'console_scripts': [
+            "py_node = my_py_pkg.my_first_node:main",
+            "battery = my_py_pkg.battery:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg led_panel
+ros2 topic list
+ros2 topic echo /led_panel_state
+ros2 run my_py_pkg battery
+########################################################################
+# PARAMETERS
+
+cd ~/ros2_ws/src/
+code .
+
+# PARAMETERS CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import Int64
+
+class NumberPublisherNode(Node):
+    def __init__(self):
+        super().__init__("number_publisher")
+        self.declare_parameter("number", 2)
+        self.declare_parameter("timer_period", 1.0)
+        self.number_ = self.get_parameter("number").value
+        self.timer_period_ = self.get_parameter("timer_period").value
+        
+        self.number_publisher_ = self.create_publisher(Int64, "number", 10)
+        self.number_timer_ = self.create_timer(self.timer_period_, self.publish_number)
+        self.get_logger().info("Number publisher has been started.")
+    
+    def publish_number(self):
+        msg = Int64()
+        msg.data = self.number_
+        self.number_publisher_.publish(msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberPublisherNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg number_publisher
+ros2 param list
+ros2 run my_py_pkg number_publisher --ros-args -p number:=3 -p timer_period:=0.5
+ros2 topic echo /number
+########################################################################
+# YAML FILE
+
+mkdir yaml_params
+cd ~/yaml_params/
+touch number_params.yaml
+gedit number_params.yaml
+
+ros2 run my_py_pkg number_publisher --ros-args -p number:=3 -p timer_period:=2.5
+ros2 node list
+ros2 param list
+
+# YAML CODE
+
+/number_publisher:
+  ros__parameters:
+    number: 5
+    timer_period: 0.7
+
+# RUN PUBLISHER WITH YAML FILE
+
+ros2 run my_py_pkg number_publisher --ros-args --params-file ~/yaml_params/number_params.yaml
+ros2 topic echo /number
+ros2 topic hz /number
+
+# YAML CODE
+
+/number_publisher1:
+  ros__parameters:
+    number: 5
+    timer_period: 0.7
+
+/number_publisher2:
+  ros__parameters:
+    number: 3
+    timer_period: 1.0
+
+# RUN 2 PUBLISHER WITH YAML FILE
+
+ros2 run my_py_pkg number_publisher --ros-args -r __node:=number_publisher1 --params-file ~/yaml_params/number_params.yaml
+ros2 run my_py_pkg number_publisher --ros-args -r __node:=number_publisher2 --params-file ~/yaml_params/number_params.yaml
+ros2 topic echo /number
+ros2 topic hz /number
+########################################################################
+# ACTIVITY 5.1
+
+cd ~/ros2_ws/src/
+code .
+
+# PARAMETERS CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from example_interfaces.msg import String
+
+class RobotNewsStationNode(Node):
+    def __init__(self):
+        super().__init__("robot_news_station")
+        self.declare_parameter("robot_name", "C3P0")
+        self.robot_name_ = self.get_parameter("robot_name").value
+        self.publisher_ = self.create_publisher(String, "robot_news", 10)
+        self.timer_ = self.create_timer(0.5, self.publish_news)
+        self.get_logger().info("Robot News Station has been started.")
+    
+    def publish_news(self):
+        msg = String()
+        msg.data = "Hi, this is " + self.robot_name_ + " from the robot news station."
+        self.publisher_.publish(msg)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = RobotNewsStationNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg robot_news_station
+ros2 param list
+ros2 param get /robot_news_station robot_name
+
+ros2 run my_py_pkg robot_news_station --ros-args -p robot_name:=R1D1
+ros2 run my_py_pkg robot_news_station --ros-args -p robot_name:="The Robot"
+ros2 run my_py_pkg robot_news_station --ros-args -r __node:=station1 -p robot_name:="The Robot"
+ros2 run my_py_pkg robot_news_station --ros-args -r __node:=station2 -p robot_name:="Giskard"
+ros2 param list
+ros2 param get /station1 robot_name
+ros2 param get /station2 robot_name
+ros2 topic list
+ros2 topic echo /robot_news
+
+# ACTIVITY 5.2
+
+cd ~/ros2_ws/src/
+code .
+
+# PARAMETERS CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from my_robot_interfaces.msg import LedStateArray
+from my_robot_interfaces.srv import SetLed
+
+class LEDPanelNode(Node):
+    def __init__(self):
+        super().__init__("led_panel")
+        self.declare_parameter("led_states", [0, 0, 0])
+        self.led_states_ = self.get_parameter("led_states").value
+        self.led_states_pub_ = self.create_publisher(
+            LedStateArray, "led_panel_state", 10)
+        self.timer_ = self.create_timer(
+            5.0, self.publish_led_sates)
+        self.set_led_service_ = self.create_service(
+            SetLed, "set_led", self.callback_set_led)
+        self.get_logger().info("LED panel node has been started.")
+    
+    def publish_led_sates(self):
+        msg = LedStateArray()
+        msg.led_states = self.led_states_
+        self.led_states_pub_.publish(msg)
+    
+    def callback_set_led(self, request: SetLed.Request, response: SetLed.Response):
+        led_number = request.led_number
+        state = request.state
+
+        if led_number >= len(self.led_states_) or led_number < 0:
+            response.success = False
+            return response
+        
+        if state not in [0, 1]:
+            response.success = False
+            return response
+        
+        self.led_states_[led_number] = state
+        self.publish_led_sates()
+        response.success = True
+        return response
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = LEDPanelNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg led_panel
+ros2 node list
+ros2 topic list
+ros2 topic echo /led_panel_state
+ros2 param list
+ros2 param get /led_panel led_states
+
+# YAML
+
+cd ~/yaml_params/
+touch led_config.yaml
+gedit led_config.yaml
+
+# YAML CODE
+
+/led_panel:
+  ros__parameters:
+    led_states: [1, 0, 2]
+
+# RUN PUBLISHER WITH YAML FILE
+
+ros2 run my_py_pkg led_panel --ros-args -p led_states:="[1, 0, 1]"
+ros2 param list
+ros2 param get /led_panel led_states
+ros2 topic echo /led_panel_state
+
+ros2 run my_py_pkg led_panel --ros-args --params-file ~/yaml_params/led_config.yaml
+ros2 param list
+ros2 param get /led_panel led_states
+ros2 topic echo /led_panel_state
+ros2 topic hz /led_panel_state
+########################################################################
+# PARAMETER CALLBACK
+
+ros2 run my_py_pkg number_publisher
+ros2 topic list
+ros2 topic echo /number
+
+ros2 param list
+ros2 param get /number_publisher number
+ros2 param get /number_publisher timer_period
+ros2 param set /number_publisher number 4
+ros2 param get /number_publisher number
+
+cd ~/ros2_ws/src/
+code .
+
+# PARAMETERS CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from example_interfaces.msg import Int64
+
+class NumberPublisherNode(Node):
+    def __init__(self):
+        super().__init__("number_publisher")
+        self.declare_parameter("number", 2)
+        self.declare_parameter("timer_period", 1.0)
+        self.number_ = self.get_parameter("number").value
+        self.timer_period_ = self.get_parameter("timer_period").value
+        self.add_on_set_parameters_callback(self.parameters_callback)
+        
+        self.number_publisher_ = self.create_publisher(Int64, "number", 10)
+        self.number_timer_ = self.create_timer(self.timer_period_, self.publish_number)
+        self.get_logger().info("Number publisher has been started.")
+    
+    def publish_number(self):
+        msg = Int64()
+        msg.data = self.number_
+        self.number_publisher_.publish(msg)
+    
+    def parameters_callback(self, params: list[Parameter]):
+        for param in params:
+            if param.name == "number":
+                self.number_ = param.value
+            #self.number_timer_.cancel()
+            #self.number_timer_.reset()
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberPublisherNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_py_pkg --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run my_py_pkg number_publisher
+ros2 topic echo /number
+ros2 param list
+ros2 param get /number_publisher number
+ros2 param set /number_publisher number 4
+
+ros2 service list
+/number_publisher/describe_parameters
+/number_publisher/get_parameter_types
+/number_publisher/get_parameters
+/number_publisher/get_type_description
+/number_publisher/list_parameters
+/number_publisher/set_parameters
+/number_publisher/set_parameters_atomically
+
+########################################################################
+
+# LAUNCH FILE
+
+cd ~/ros2_ws/src/
+ros2 pkg create my_robot_bringup
+cd ~/ros2_ws/src/my_robot_bringup/
+rm -r include/ src/
+mkdir launch
+cd ~/ros2_ws/src/
+code .
+
+# GO TO CMakeLists.txt, DELETE:
+
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+# GO TO CMakeLists.txt, INSERT:
+
+install (DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# XML LAUNCH FILE
+# RIGHT CLICK launch IN VISUAL STUDIO CODE, CLICK New File, NAME IT:
+number_app.launch.xml
+
+# XML LAUNCH FILE CODE:
+
+<launch>
+    <node pkg="my_py_pkg" exec="number_publisher" />
+    <node pkg="my_py_pkg" exec="number_counter" />
+</launch>
+
+# OPEN FILE package.xml, INSERT:
+
+  <exec_depend>my_py_pkg</exec_depend>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.xml
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 topic echo /number_count
+rqt_graph
+
+# PYTHON LAUNCH FILE
+# RIGHT CLICK launch IN VISUAL STUDIO CODE, CLICK New File, NAME IT:
+number_app.launch.py
+
+# PYTHON LAUNCH FILE CODE:
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    ld = LaunchDescription()
+
+    number_publisher = Node(
+        package="my_py_pkg",
+        executable="number_publisher"
+    )
+
+    number_counter = Node(
+        package="my_py_pkg",
+        executable="number_counter"
+    )
+
+    ld.add_action(number_publisher)
+    ld.add_action(number_counter)
+
+    return ld
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.py
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 topic echo /number_count
+rqt_graph
+
+# XML LAUNCH FILE IMPORT FROM PYTHON LAUNCH FILE
+# RIGHT CLICK launch IN VISUAL STUDIO CODE, CLICK New File, NAME IT:
+number_app_from_python.launch.xml
+
+# XML LAUNCH FROM PYTHON CODE:
+
+<launch>
+    <include file="$(find-pkg-share my_robot_bringup)/launch/number_app.launch.py" />
+</launch>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app_from_python.launch.xml
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 topic echo /number_count
+rqt_graph
+
+########################################################################
+# REMAPPING IN A LAUNCH FILE
+
+cd ~/ros2_ws/src/
+code .
+
+# REMAP XML LAUNCH FILE CODE
+
+<launch>
+    <node pkg="my_py_pkg" exec="number_publisher" name="my_number_publisher">
+        <remap from="number" to="my_number" />
+    </node>
+    <node pkg="my_py_pkg" exec="number_counter" name="my_number_counter">
+        <remap from="number" to="my_number" />
+    </node>
+</launch>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.xml
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 topic echo /number_count
+rqt_graph
+
+# REMAP PYTHON LAUNCH FILE CODE
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    ld = LaunchDescription()
+
+    number_publisher = Node(
+        package="my_py_pkg",
+        executable="number_publisher",
+        name="my_number_publisher",
+        remappings=[("/number", "/my_number")]
+    )
+
+    number_counter = Node(
+        package="my_py_pkg",
+        executable="number_counter",
+        name="number_counter",
+        remappings=[("/number", "/my_number")]
+    )
+
+    ld.add_action(number_publisher)
+    ld.add_action(number_counter)
+
+    return ld
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.py
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 topic echo /number_count
+rqt_graph
+
+########################################################################
+# LOAD PARAMETER IN A LAUNCH FILE
+
+cd ~/ros2_ws/src/
+code .
+
+# LOAD PARAMETERS XML LAUNCH FILE CODE:
+
+<launch>
+    <node pkg="my_py_pkg" exec="number_publisher" name="my_number_publisher">
+        <remap from="number" to="my_number" />
+        <param name="number" value="6" />
+        <param name="timer_period" value="1.5" />
+    </node>
+    <node pkg="my_py_pkg" exec="number_counter" name="my_number_counter">
+        <remap from="number" to="my_number" />
+    </node>
+</launch>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.xml
+ros2 node list
+ros2 topic list
+ros2 topic echo /number_count
+ros2 service list
+ros2 param list
+ros2 param get /my_number_publisher number
+ros2 param get /my_number_publisher timer_period
+rqt_graph
+
+# LOAD PARAMETERS PYTHON LAUNCH FILE CODE:
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    ld = LaunchDescription()
+
+    number_publisher = Node(
+        package="my_py_pkg",
+        executable="number_publisher",
+        name="my_number_publisher",
+        remappings=[("/number", "/my_number")],
+        parameters=[
+            {"number": 12},
+            {"timer_period": 1.3}
+        ]
+    )
+
+    number_counter = Node(
+        package="my_py_pkg",
+        executable="number_counter",
+        name="number_counter",
+        remappings=[("/number", "/my_number")]
+    )
+
+    ld.add_action(number_publisher)
+    ld.add_action(number_counter)
+
+    return ld
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.py
+ros2 node list
+ros2 topic list
+ros2 topic echo /number_count
+ros2 service list
+ros2 param list
+ros2 param get /my_number_publisher number
+ros2 param get /my_number_publisher timer_period
+rqt_graph
+
+########################################################################
+# CREATE CONFIG FOLDER FOR YAML FILE
+
+cd ~/ros2_ws/src/my_robot_bringup/
+mkdir config
+cd ~/ros2_ws/src/
+code .
+
+# GO TO CMakeLists.txt, INSERT:
+
+install (DIRECTORY
+  launch config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# RIGHT CLICK config FOLDER, CLICK New File, NAME IT: number_app.yaml
+
+# YAML CODE:
+
+/my_number_publisher:
+  ros__parameters:
+    number: 6
+    timer_period: 1.5
+
+# LOAD PARAMETERS XML LAUNCH FILE CODE:
+
+<launch>
+    <node pkg="my_py_pkg" exec="number_publisher" name="my_number_publisher">
+        <remap from="/number" to="/my_number" />
+        <!-- <param name="number" value="6" />
+        <param name="timer_period" value="1.5" /> -->
+        <param from="$(find-pkg-share my_robot_bringup)/config/number_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="number_counter" name="my_number_counter">
+        <remap from="/number" to="/my_number" />
+    </node>
+</launch>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.xml
+ros2 node list
+ros2 topic list
+ros2 topic echo /number_count
+ros2 service list
+ros2 param list
+ros2 param get /my_number_publisher number
+ros2 param get /my_number_publisher timer_period
+rqt_graph
+
+# LOAD PARAMETERS PYTHON LAUNCH FILE CODE:
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
+
+def generate_launch_description():
+    ld = LaunchDescription()
+
+    param_config = os.join(get_package_share_directory("my_robot_bringup"), 
+                           "config", "number_app.yaml")
+
+    number_publisher = Node(
+        package="my_py_pkg",
+        executable="number_publisher",
+        name="my_number_publisher",
+        remappings=[("/number", "/my_number")],
+        # parameters=[
+        #     {"number": 12},
+        #     {"timer_period": 1.3}
+        # ]
+        parameters=[param_config]
+    )
+
+    number_counter = Node(
+        package="my_py_pkg",
+        executable="number_counter",
+        name="number_counter",
+        remappings=[("/number", "/my_number")]
+    )
+
+    ld.add_action(number_publisher)
+    ld.add_action(number_counter)
+
+    return ld
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.py
+ros2 node list
+ros2 topic list
+ros2 topic echo /number_count
+ros2 service list
+ros2 param list
+ros2 param get /my_number_publisher number
+ros2 param get /my_number_publisher timer_period
+rqt_graph
+
+########################################################################
+# NAMESPACE
+
+self.number_publisher_ = self.create_publisher(Int64, "number", 10)
+
+ros2 run my_py_pkg number_publisher --ros-args -r __ns:=/test
+ros2 node list
+	/number_publisher -> /test/number_publisher
+ros2 topic list
+	/number -> /test/number
+ros2 param list
+	/number_publisher:	->	/test/number_publisher:
+		number                  	number
+
+
+self.number_publisher_ = self.create_publisher(Int64, "/number", 10)
+
+ros2 run my_py_pkg number_publisher --ros-args -r __ns:=/test
+ros2 node list
+	/number_publisher -> /test/number_publisher
+ros2 topic list
+	/number -> /number
+ros2 param list
+	/number_publisher:	->	/test/number_publisher:
+		number                  	number
+
+# NAMESPACE XML LAUNCH FILE CODE:
+
+<launch>
+    <node pkg="my_py_pkg" exec="number_publisher" name="my_number_publisher" namespace="/abc">
+        <remap from="number" to="my_number" />
+        <!-- <param name="number" value="6" />
+        <param name="timer_period" value="1.5" /> -->
+        <param from="$(find-pkg-share my_robot_bringup)/config/number_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="number_counter" name="my_number_counter" namespace="/abc">
+        <remap from="number" to="my_number" />
+    </node>
+</launch>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.xml
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 param list
+rqt_graph
+
+# NAMESPACE PYTHON LAUNCH FILE CODE:
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
+
+def generate_launch_description():
+    ld = LaunchDescription()
+
+    param_config = os.path.join(get_package_share_directory("my_robot_bringup"), 
+                           "config", "number_app.yaml")
+
+    number_publisher = Node(
+        package="my_py_pkg",
+        executable="number_publisher",
+        namespace="/abc",
+        name="my_number_publisher",
+        remappings=[("number", "my_number")],
+        # parameters=[
+        #     {"number": 12},
+        #     {"timer_period": 1.3}
+        # ]
+        parameters=[param_config]
+    )
+
+    number_counter = Node(
+        package="my_py_pkg",
+        executable="number_counter",
+        namespace="/abc",
+        name="number_counter",
+        remappings=[("number", "my_number")]
+    )
+
+    ld.add_action(number_publisher)
+    ld.add_action(number_counter)
+
+    return ld
+
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup number_app.launch.py
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 param list
+rqt_graph
+
+########################################################################
+# ACTIVITY 6: ROS2 LAUNCH FILE
+
+ros2 run my_py_pkg robot_news_station --ros-args -r __node:=robot_news_station_giskard -p robot_name:="Giskard"
+ros2 topic echo /robot_news
+...
+
+# XML LAUNCH FILE
+# RIGHT CLICK launch IN VISUAL STUDIO CODE, CLICK New File, NAME IT:
+radio.launch.xml
+
+# XML LAUNCH FILE CODE:
+
+<launch>
+    <node pkg="my_py_pkg" exec="robot_news_station" name="robot_news_station_giskard">
+        <!-- <param name="robot_name" value="Giskard" /> -->
+        <param from="$(find-pkg-share my_robot_bringup)/config/robot_news_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="robot_news_station" name="robot_news_station_bb8">
+        <param from="$(find-pkg-share my_robot_bringup)/config/robot_news_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="robot_news_station" name="robot_news_station_daneel">
+        <param from="$(find-pkg-share my_robot_bringup)/config/robot_news_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="robot_news_station" name="robot_news_station_jander">
+        <param from="$(find-pkg-share my_robot_bringup)/config/robot_news_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="robot_news_station" name="robot_news_station_c3p0">
+        <param from="$(find-pkg-share my_robot_bringup)/config/robot_news_app.yaml" />
+    </node>
+    <node pkg="my_py_pkg" exec="smartphone" name="smartphone" />
+</launch>
+
+# RIGHT CLICK config FOLDER, CLICK New File, NAME IT: radio_config.yaml
+
+# YAML CODE:
+
+/robot_news_station_giskard:
+  ros__parameters:
+    robot_name: Giskard
+
+/robot_news_station_bb8:
+  ros__parameters:
+    robot_name: BB8
+
+/robot_news_station_daneel:
+  ros__parameters:
+    robot_name: Daneel
+
+/robot_news_station_jander:
+  ros__parameters:
+    robot_name: Jander
+
+/robot_news_station_c3p0:
+  ros__parameters:
+    robot_name: C3P0
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+source ~/ros2_ws/install/setup.bash
+
+ros2 launch my_robot_bringup radio.launch.xml
+ros2 node list
+ros2 topic list
+ros2 service list
+ros2 topic echo /robot_news
+rqt_graph
+
+########################################################################
+# FINAL PROJECT
+
+# TURTLE CONTROLLER
+
+ros2 run turtlesim turtlesim_node
+ros2 topic list
+ros2 topic echo /turtle1/pose
+ros2 topic info /turtle1/pose
+ros2 topic info /turtle1/cmd_vel
+ros2 interface show turtlesim/msg/Pose
+ros2 interface show geometry_msgs/msg/Twist
+rqt_graph
+
+cd ~/ros2_ws/src/
+ros2 pkg create turtlesim_catch_them_all --build-type ament_python --dependencies rclpy turtlesim
+cd ~/ros2_ws/src/turtlesim_catch_them_all/turtlesim_catch_them_all/
+touch turtle_controller.py
+chmod +x turtle_controller.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# ADD DEPENDENCIES TO package.xml
+
+  <depend>rclpy</depend>
+  <depend>turtlesim</depend>
+  <depend>geometry_msgs</depend>
+
+# TURTLE CONTROLLER CODE:
+
+#!/usr/bin/env python3
+import math
+import rclpy
+from functools import partial
+from rclpy.node import Node
+from turtlesim.msg import Pose
+from geometry_msgs.msg import Twist
+from my_robot_interfaces.msg import Turtle
+from my_robot_interfaces.msg import TurtleArray
+from my_robot_interfaces.srv import CatchTurtle
+
+class TurtleControllerNode(Node):
+    def __init__(self):
+        super().__init__("turtle_controller")
+        self.declare_parameter("catch_closest_turtle_first", True)
+        
+        self.catch_closest_turtle_first_ = self.get_parameter(
+            "catch_closest_turtle_first").value
+        self.turtle_to_catch_: Turtle = None
+        self.pose_: Pose = None
+        self.cmd_vel_publisher_ = self.create_publisher(
+            Twist, "/turtle1/cmd_vel", 10)
+        self.pose_subscriber_ = self.create_subscription(
+            Pose, "/turtle1/pose", self.callback_pose, 10)
+        self.alive_turtles_subscriber_ = self.create_subscription(
+            TurtleArray, "alive_turtles", self.callback_alive_turtles, 10)
+        self.catch_turtle_client_ = self.create_client(CatchTurtle, "catch_turtle")
+        self.control_loop_timer_ = self.create_timer(
+            0.01, self.control_loop)
+    
+    def callback_pose(self, pose: Pose):
+        self.pose_ = pose
+    
+    def callback_alive_turtles(self, msg: TurtleArray):
+        if len(msg.turtles) > 0:
+            if self.catch_closest_turtle_first_:
+                closest_turtle = None
+                closest_turtle_distance = None
+
+                for turtle in msg.turtles:
+                    dist_x = turtle.x - self.pose_.x
+                    dist_y = turtle.y - self.pose_.y
+                    distance = math.sqrt(dist_x * dist_x + dist_y * dist_y)
+                    if closest_turtle == None or distance < closest_turtle_distance:
+                        closest_turtle = turtle
+                        closest_turtle_distance = distance
+                self.turtle_to_catch_ = closest_turtle
+            else:
+                self.turtle_to_catch_ = msg.turtles[0]
+    
+    def control_loop(self):
+        if self.pose_ == None or self.turtle_to_catch_ == None:
+            return
+        
+        dist_x = self.turtle_to_catch_.x - self.pose_.x
+        dist_y = self.turtle_to_catch_.y - self.pose_.y
+        distance = math.sqrt(dist_x * dist_x + dist_y * dist_y)
+
+        cmd = Twist()
+
+        if distance > 0.5:
+            # position
+            cmd.linear.x = 2 * distance
+
+            # orientation
+            goal_theta = math.atan2(dist_y, dist_x)
+            diff = goal_theta - self.pose_.theta
+            if diff > math.pi:
+                diff -= 2 * math.pi
+            elif diff < -math.pi:
+                diff += 2 * math.pi
+            cmd.angular.z = 6 * diff
+        else:
+            # target reached
+            cmd.linear.x = 0.0
+            cmd.angular.z = 0.0
+            self.call_catch_turtle_service(self.turtle_to_catch_.name)
+            self.turtle_to_catch_ = None
+
+        self.cmd_vel_publisher_.publish(cmd)
+
+    def call_catch_turtle_service(self, turtle_name):
+        while not self.catch_turtle_client_.wait_for_service(1.0):
+            self.get_logger().warn("Waiting for catch turtle service...")
+        
+        request = CatchTurtle.Request()
+        request.name = turtle_name
+
+        future = self.catch_turtle_client_.call_async(request)
+        future.add_done_callback(
+            partial(self.callback_call_catch_turtle_service, turtle_name=turtle_name))
+    
+    def callback_call_catch_turtle_service(self, future, turtle_name):
+        response: CatchTurtle.Response = future.result()
+        if not response.success:
+            self.get_logger().error("Turtle " + turtle_name + " could not be removed")
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = TurtleControllerNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# ADD EXECUTABLE NAME TO setup.py
+
+entry_points={
+        'console_scripts': [
+            "controller=turtlesim_catch_them_all.turtle_controller:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select turtlesim_catch_them_all --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run turtlesim turtlesim_node
+ros2 run turtlesim_catch_them_all controller
+
+########################################################################
+# TURTLE SPAWNER
+
+ros2 run turtlesim turtlesim_node
+ros2 service list
+ros2 service type /spawn
+ros2 interface show turtlesim/srv/Spawn
+ros2 service call /spawn turtlesim/srv/Spawn "{x: 3.4, y: 4.5, theta: 3.14, name: 'abc'}"
+
+cd ~/ros2_ws/src/my_robot_interfaces/msg/
+touch Turtle.msg
+touch TurtleArray.msg
+
+cd ~/ros2_ws/src/my_robot_interfaces/srv/
+touch CatchTurtle.srv
+
+cd ~/ros2_ws/src/turtlesim_catch_them_all/turtlesim_catch_them_all/
+touch turtle_spawner.py
+chmod +x turtle_spawner.py
+rm -r __pycache__/
+cd ~/ros2_ws/src/
+code .
+
+# TURTLE MSG CODE:
+
+string name
+float64 x
+float64 y
+float64 theta
+
+# TURTLE ARRAY MSG CODE:
+
+Turtle[] turtles
+
+# CATCH TURTLE SRV CODE:
+
+string name
+---
+bool success
+
+# GO TO /my_robot_interfaces/CMakeLists.txt, INSERT:
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/HardwareStatus.msg"
+  "msg/LedStateArray.msg"
+  "msg/Turtle.msg"
+  "msg/TurtleArray.msg"
+  "srv/ComputeRectangleArea.srv"
+  "srv/SetLed.srv"
+  "srv/CatchTurtle.srv"
+)
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_interfaces
+source ~/ros2_ws/install/setup.bash
+
+ros2 interface show my_robot_interfaces/msg/Turtle
+ros2 interface show my_robot_interfaces/msg/TurtleArray
+ros2 interface show my_robot_interfaces/srv/CatchTurtle
+
+# GO TO ~/ros2_ws/src/turtlesim_catch_them_all/package.xml, INSERT:
+
+  <depend>rclpy</depend>
+  <depend>turtlesim</depend>
+  <depend>geometry_msgs</depend>
+  <depend>my_robot_interfaces</depend>
+
+# TURTLE SPAWNER CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from functools import partial
+import random
+import math
+from turtlesim.srv import Spawn
+from turtlesim.srv import Kill
+from my_robot_interfaces.msg import Turtle
+from my_robot_interfaces.msg import TurtleArray
+from my_robot_interfaces.srv import CatchTurtle
+
+class TurtleSpawnerNode(Node):
+    def __init__(self):
+        super().__init__("turtle_spawner")
+        self.declare_parameter("turtle_name_prefix", "turtle")
+        self.declare_parameter("spawn_frequency", 1.0)
+
+        self.turtle_name_prefix_ = self.get_parameter("turtle_name_prefix").value
+        self.spawn_frequency_ = self.get_parameter("spawn_frequency").value
+        self.turtle_counter_ = 0
+        self.alive_turtles_ = []
+        self.alive_turtles_publisher_ = self.create_publisher(
+            TurtleArray, "alive_turtles", 10)
+        self.spawn_client_ = self.create_client(Spawn, "/spawn")
+        self.kill_client_ = self.create_client(Kill, "/kill")
+        self.catch_turtle_service_ = self.create_service(
+            CatchTurtle, "catch_turtle", self.callback_catch_turtle)
+        self.spawn_turtle_timer_ = self.create_timer(
+            1.0 / self.spawn_frequency_, self.spawn_new_turtle)
+    
+    def callback_catch_turtle(self, request: CatchTurtle.Request, response: CatchTurtle.Response):
+        self.call_kill_service(request.name)
+        response.success = True
+        return response
+    
+    def publish_alive_turtles(self):
+        msg = TurtleArray()
+        msg.turtles = self.alive_turtles_
+        self.alive_turtles_publisher_.publish(msg)
+    
+    def spawn_new_turtle(self):
+        self.turtle_counter_ += 1
+        name = self.turtle_name_prefix_ + str(self.turtle_counter_)
+        x = random.uniform(0.0, 11.0)
+        y = random.uniform(0.0, 11.0)
+        theta = random.uniform(0.0, 2*math.pi)
+        self.call_spawn_service(name, x, y, theta)
+    
+    def call_spawn_service(self, turtle_name, x, y, theta):
+        while not self.spawn_client_.wait_for_service(1.0):
+            self.get_logger().warn("Waiting for spawn service...")
+        
+        request = Spawn.Request()
+        request.x = x
+        request.y = y
+        request.theta = theta
+        request.name = turtle_name
+
+        future = self.spawn_client_.call_async(request)
+        future.add_done_callback(
+            partial(self.callback_call_spawn_service, request=request))
+    
+    def callback_call_spawn_service(self, future, request: Spawn.Request):
+        response: Spawn.Response = future.result()
+        if response.name != "":
+            self.get_logger().info("New alive turtle: " + response.name)
+            new_turtle = Turtle()
+            new_turtle.name = response.name
+            new_turtle.x = request.x
+            new_turtle.y = request.y
+            new_turtle.theta = request.theta
+            self.alive_turtles_.append(new_turtle)
+            self.publish_alive_turtles()
+    
+    def call_kill_service(self, turtle_name):
+        while not self.kill_client_.wait_for_service(1.0):
+            self.get_logger().warn("Waiting for kill service...")
+        
+        request = Kill.Request()
+        request.name = turtle_name
+
+        future = self.kill_client_.call_async(request)
+        future.add_done_callback(
+            partial(self.callback_call_kill_service, turtle_name=turtle_name))
+    
+    def callback_call_kill_service(self, future, turtle_name):
+        for (i, turtle) in enumerate(self.alive_turtles_):
+            if turtle.name == turtle_name:
+                del self.alive_turtles_[i]
+                self.publish_alive_turtles()
+                break
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = TurtleSpawnerNode()
+    # node.call_spawn_service("test", 3.0, 3.0, 0.0)
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# ADD EXECUTABLE NAME TO setup.py
+
+entry_points={
+        'console_scripts': [
+            "controller=turtlesim_catch_them_all.turtle_controller:main",
+            "spawner=turtlesim_catch_them_all.turtle_spawner:main"
+        ]
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select turtlesim_catch_them_all
+colcon build --packages-select my_robot_interfaces
+source ~/ros2_ws/install/setup.bash
+
+ros2 run turtlesim turtlesim_node
+ros2 run turtlesim_catch_them_all controller
+ros2 run turtlesim_catch_them_all spawner
+ros2 topic list
+ros2 topic echo /alive_turtles
+
+ros2 service list
+ros2 service type /kill
+ros2 interface show turtlesim/srv/Kill
+ros2 service call /kill turtlesim/srv/Kill "{name: turtle1}"
+
+# XML: turtlesim_catch_them_all.launch.xml
+
+<launch>
+    <node pkg="turtlesim" exec="turtlesim_node" />
+    <node pkg="turtlesim_catch_them_all" exec="controller">
+        <param from="$(find-pkg-share my_robot_bringup)/config/catch_them_all.yaml" />
+    </node>
+    <node pkg="turtlesim_catch_them_all" exec="spawner">
+        <param from="$(find-pkg-share my_robot_bringup)/config/catch_them_all.yaml" />
+    </node>
+</launch>
+
+# YAML: catch_them_all_config.yaml
+
+/turtle_controller:
+  ros__parameters:
+    catch_closest_turtle_first: True
+
+/turtle_spawner:
+  ros__parameters:
+    turtle_name: "test"
+    spawn_frequency: 5.0
+
+# package.xml
+
+  <exec_depend>my_py_pkg</exec_depend>
+  <exec_depend>turtlesim</exec_depend>
+  <exec_depend>turtlesim_catch_them_all</exec_depend>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_bringup
+colcon build --packages-select my_robot_interfaces
+colcon build --packages-select turtlesim_catch_them_all
+source ~/ros2_ws/install/setup.bash
+ros2 launch my_robot_bringup turtlesim_catch_them_all.launch.xml
+
+
+cd ~/ros2_ws/
+rm -r build/ install/ log/
+colcon build
+source ~/ros2_ws/install/setup.bash
+ros2 launch my_robot_bringup turtlesim_catch_them_all.launch.xml
+

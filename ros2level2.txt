@@ -1,0 +1,978 @@
+# ACTIONS
+
+mkdir ~/ros2_ws/src/
+cd ~/ros2_ws/
+colcon build
+
+gedit ~/.bashrc
+
+source /opt/ros/jazzy/setup.bash
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+source /home/khiem/ros2_ws/install/setup.bash
+
+cd ~/ros2_ws/src/
+ros2 pkg create my_robot_interfaces
+cd ~/ros2_ws/src/my_robot_interfaces/
+rm -r include/ src/
+mkdir msg srv action
+cd ~/ros2_ws/src/
+code .
+
+# IN FOLDER ~/ros2_ws/src/my_robot_interfaces/action/
+MAKE NEW FILE: CountUntil.action
+
+# ACTION CODE:
+
+# Goal
+int64 target_number
+float64 period
+---
+# Result
+int64 reached_number
+---
+# Feedback
+int64 current_number
+
+# GO TO package.xml, INSERT:
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+# GO TO CMakeLists.txt, INSERT:
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/HardwareStatus.msg"
+  "msg/LedStateArray.msg"
+  "msg/Turtle.msg"
+  "msg/TurtleArray.msg"
+  "srv/ComputeRectangleArea.srv"
+  "srv/SetLed.srv"
+  "srv/CatchTurtle.srv"
+  "action/CountUntil.action"
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
+# BUILD AND SOURCE:
+
+cd ~/ros2_ws
+colcon build --packages-select my_robot_interfaces
+source ~/ros2_ws/install/setup.bash
+
+ros2 interface show my_robot_interfaces/action/CountUntil
+
+***************************************************************************
+# ACTION SERVER
+
+cd ~/ros2_ws/src/
+ros2 pkg create actions_py --build-type ament_python --dependencies rclpy my_robot_interfaces
+cd ~/ros2_ws/src/actions_py/actions_py/
+touch count_until_server.py
+chmod +x count_until_server.py
+
+# GOAL POLICY: MULTIPLE GOALS IN PARALLEL
+# PARALLEL ACTION SERVER CODE:
+
+#!/usr/bin/env python3
+import rclpy
+import time
+from rclpy.node import Node
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+from rclpy.action.server import ServerGoalHandle
+from my_robot_interfaces.action import CountUntil
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+
+class CountUntilServerNode(Node):
+    def __init__(self):
+        super().__init__("cout_until_server")
+        self.count_until_server_ = ActionServer(
+            self, 
+            CountUntil, 
+            "count_until",
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback,
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup())
+        self.get_logger().info("Action server has been started.")
+    
+    def goal_callback(self, goal_request: CountUntil.Goal):
+        self.get_logger().info("Received a goal")
+        # Validate the goal request
+        if goal_request.target_number <= 0:
+            self.get_logger().info("Rejecting the goal")
+            return GoalResponse.REJECT
+        self.get_logger().info("Accepting the goal")
+        return GoalResponse.ACCEPT
+
+    def cancel_callback(self, goal_handle: ServerGoalHandle):
+        self.get_logger().info("Received a cancel request")
+        return CancelResponse.ACCEPT
+    
+    def execute_callback(self, goal_handle: ServerGoalHandle):
+        # Get request from goal
+        target_number = goal_handle.request.target_number
+        period = goal_handle.request.period
+
+        # Execute the action
+        self.get_logger().info("Executing the goal")
+        feedback = CountUntil.Feedback()
+        result = CountUntil.Result()
+        counter = 0
+        for i in range(target_number):
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info("Canceling the goal")
+                goal_handle.canceled()
+                result.reached_number = counter
+                return result
+            counter += 1
+            self.get_logger().info(str(counter))
+            feedback.current_number = counter
+            goal_handle.publish_feedback(feedback)
+            time.sleep(period)
+        
+        # Once done, set goal final state
+        goal_handle.succeed()
+
+        # and send the result
+        result.reached_number = counter
+        return result
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = CountUntilServerNode()
+    rclpy.spin(node, MultiThreadedExecutor())
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# GO TO setup.py, INSERT:
+
+entry_points={
+        'console_scripts': [
+            "count_until_server = actions_py.count_until_server:main"
+        ],
+    }
+
+# BUILD AND SOURCE:
+
+cd ~/ros2_ws
+colcon build --packages-select actions_py
+source ~/ros2_ws/install/setup.bash
+
+ros2 run actions_py count_until_server
+
+***************************************************************************
+# ACTION CLIENT
+
+cd ~/ros2_ws/src/actions_py/actions_py/
+touch count_until_client.py
+chmod +x count_until_client.py 
+
+# ACTION CLIENT CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+from rclpy.action.client import ClientGoalHandle, GoalStatus
+from my_robot_interfaces.action import CountUntil
+
+
+class CountUntilClientNode(Node):
+    def __init__(self):
+        super().__init__("count_until_client")
+        self.count_until_client_ = ActionClient(self, CountUntil, "count_until")
+    
+    def send_goal(self, target_number, period):
+        # Wait for the server
+        self.count_until_client_.wait_for_server()
+
+        # Create a goal
+        goal = CountUntil.Goal()
+        goal.target_number = target_number
+        goal.period = period
+
+        # Send the goal
+        self.get_logger().info("Sending goal")
+        self.count_until_client_. \
+            send_goal_async(goal, feedback_callback=self.goal_feedback_callback). \
+                add_done_callback(self.goal_respose_callback)
+        
+        # Send a cancel request 2 seconds later
+        self.timer_ = self.create_timer(2.0,self.cancel_goal)
+    
+    def cancel_goal(self):
+        self.get_logger().info("Send a cancel request")
+        self.goal_handle_.cancel_goal_async()
+        self.timer_.cancel()
+    
+    def goal_respose_callback(self, future):
+        self.goal_handle_: ClientGoalHandle = future.result()
+        if self.goal_handle_.accepted:
+            self.get_logger().info("Goal got accepted")
+            self.goal_handle_.get_result_async().add_done_callback(self.goal_result_callback)
+        else:
+            self.get_logger().warn("Goal got rejected")
+    
+    def goal_result_callback(self, future):
+        status = future.result().status
+        result = future.result().result
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info("Success")
+        elif status == GoalStatus.STATUS_ABORTED:
+            self.get_logger().error("Aborted")
+        elif status == GoalStatus.STATUS_CANCELED:
+            self.get_logger().info("Canceled")
+        self.get_logger().info("Result: " + str(result.reached_number))
+    
+    def goal_feedback_callback(self, feedback_msg):
+        number = feedback_msg.feedback.current_number
+        self.get_logger().info("Got feedback: " + str(number))
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = CountUntilClientNode()
+    node.send_goal(6, 1.0)
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# GO TO setup.py, INSERT:
+
+entry_points={
+        'console_scripts': [
+            "count_until_client = actions_py.count_until_client:main"
+        ],
+    }
+
+# BUILD AND SOURCE:
+
+cd ~/ros2_ws
+colcon build --packages-select actions_py --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run actions_py count_until_server
+ros2 run actions_py count_until_client
+ros2 action send_goal /count_until my_robot_interfaces/action/CountUntil "{target_number: 6,period: 0.7}" --feedback
+
+***************************************************************************
+# ACTIONS COMMAND LINES
+
+ros2 run actions_py count_until_server
+ros2 action list
+ros2 action info /count_until
+ros2 topic list
+ros2 topic list --include-hidden-topics
+ros2 service list
+ros2 service list --include-hidden-services
+ros2 action list -t
+ros2 interface show my_robot_interfaces/action/CountUntil
+ros2 action send_goal /count_until my_robot_interfaces/action/CountUntil "{target_number: 5, period: 2}"
+ros2 action send_goal /count_until my_robot_interfaces/action/CountUntil "{target_number: 5, period: 2}" --feedback 
+
+***************************************************************************
+# GOAL POLICY: REFUSE NEW GOAL IF CURRENT GOAL IS ACTIVE
+
+# REFUSE ACTION SERVER CODE:
+
+#!/usr/bin/env python3
+import rclpy
+import time
+import threading
+from rclpy.node import Node
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+from rclpy.action.server import ServerGoalHandle
+from my_robot_interfaces.action import CountUntil
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+
+class CountUntilServerNode(Node):
+    def __init__(self):
+        super().__init__("cout_until_server")
+        self.goal_handle_: ServerGoalHandle = None
+        self.goal_lock_ = threading.Lock()
+        self.count_until_server_ = ActionServer(
+            self, 
+            CountUntil, 
+            "count_until",
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback,
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup())
+        self.get_logger().info("Action server has been started.")
+    
+    def goal_callback(self, goal_request: CountUntil.Goal):
+        self.get_logger().info("Received a goal")
+
+        # Policy: refuse new goal if current goal is still active
+        with self.goal_lock_:
+            if self.goal_handle_ is not None and self.goal_handle_.is_active:
+                self.get_logger().info("A goal is already active, rejecting new goal")
+                return GoalResponse.REJECT
+
+        # Validate the goal request
+        if goal_request.target_number <= 0:
+            self.get_logger().info("Rejecting the goal")
+            return GoalResponse.REJECT
+        self.get_logger().info("Accepting the goal")
+        return GoalResponse.ACCEPT
+
+    def cancel_callback(self, goal_handle: ServerGoalHandle):
+        self.get_logger().info("Received a cancel request")
+        return CancelResponse.ACCEPT
+    
+    def execute_callback(self, goal_handle: ServerGoalHandle):
+        with self.goal_lock_:
+            self.goal_handle_ = goal_handle
+
+        # Get request from goal
+        target_number = goal_handle.request.target_number
+        period = goal_handle.request.period
+
+        # Execute the action
+        self.get_logger().info("Executing the goal")
+        feedback = CountUntil.Feedback()
+        result = CountUntil.Result()
+        counter = 0
+        for i in range(target_number):
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info("Canceling the goal")
+                goal_handle.canceled()
+                result.reached_number = counter
+                return result
+            counter += 1
+            self.get_logger().info(str(counter))
+            feedback.current_number = counter
+            goal_handle.publish_feedback(feedback)
+            time.sleep(period)
+        
+        # Once done, set goal final state
+        goal_handle.succeed()
+
+        # and send the result
+        result.reached_number = counter
+        return result
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = CountUntilServerNode()
+    rclpy.spin(node, MultiThreadedExecutor())
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+***************************************************************************
+# GOAL POLICY: PREEMPT CURRENT GOAL IF NEW GOAL RECEIVED
+
+# PREEMPT ACTION SERVER CODE:
+
+#!/usr/bin/env python3
+import rclpy
+import time
+import threading
+from rclpy.node import Node
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+from rclpy.action.server import ServerGoalHandle
+from my_robot_interfaces.action import CountUntil
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+
+class CountUntilServerNode(Node):
+    def __init__(self):
+        super().__init__("cout_until_server")
+        self.goal_handle_: ServerGoalHandle = None
+        self.goal_lock_ = threading.Lock()
+        self.count_until_server_ = ActionServer(
+            self, 
+            CountUntil, 
+            "count_until",
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback,
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup())
+        self.get_logger().info("Action server has been started.")
+    
+    def goal_callback(self, goal_request: CountUntil.Goal):
+        self.get_logger().info("Received a goal")
+
+        # Policy: refuse new goal if current goal is still active
+        # with self.goal_lock_:
+        #     if self.goal_handle_ is not None and self.goal_handle_.is_active:
+        #         self.get_logger().info("A goal is already active, rejecting new goal")
+        #         return GoalResponse.REJECT
+
+        # Validate the goal request
+        if goal_request.target_number <= 0:
+            self.get_logger().info("Rejecting the goal")
+            return GoalResponse.REJECT
+        
+        # Policy: preempt existing goal when recieving new goal
+        with self.goal_lock_:
+            if self.goal_handle_ is not None and self.goal_handle_.is_active:
+                self.get_logger().info("Abort current goal and accept new goal")
+                self.goal_handle_.abort()
+
+        self.get_logger().info("Accepting the goal")
+        return GoalResponse.ACCEPT
+
+    def cancel_callback(self, goal_handle: ServerGoalHandle):
+        self.get_logger().info("Received a cancel request")
+        return CancelResponse.ACCEPT
+    
+    def execute_callback(self, goal_handle: ServerGoalHandle):
+        with self.goal_lock_:
+            self.goal_handle_ = goal_handle
+
+        # Get request from goal
+        target_number = goal_handle.request.target_number
+        period = goal_handle.request.period
+
+        # Execute the action
+        self.get_logger().info("Executing the goal")
+        feedback = CountUntil.Feedback()
+        result = CountUntil.Result()
+        counter = 0
+        for i in range(target_number):
+            if not goal_handle.is_active:
+                result.reached_number = counter
+                return result
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info("Canceling the goal")
+                goal_handle.canceled()
+                result.reached_number = counter
+                return result
+            counter += 1
+            self.get_logger().info(str(counter))
+            feedback.current_number = counter
+            goal_handle.publish_feedback(feedback)
+            time.sleep(period)
+        
+        # Once done, set goal final state
+        goal_handle.succeed()
+
+        # and send the result
+        result.reached_number = counter
+        return result
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = CountUntilServerNode()
+    rclpy.spin(node, MultiThreadedExecutor())
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+***************************************************************************
+# GOAL POLICY: QUEUE GOALS
+
+# QUEUE ACTION SERVER CODE:
+
+#!/usr/bin/env python3
+import rclpy
+import time
+import threading
+from rclpy.node import Node
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+from rclpy.action.server import ServerGoalHandle
+from my_robot_interfaces.action import CountUntil
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+
+class CountUntilServerNode(Node):
+    def __init__(self):
+        super().__init__("cout_until_server")
+        self.goal_handle_: ServerGoalHandle = None
+        self.goal_lock_ = threading.Lock()
+        self.goal_queue_ = []
+        self.count_until_server_ = ActionServer(
+            self, 
+            CountUntil, 
+            "count_until",
+            goal_callback=self.goal_callback,
+            handle_accepted_callback=self.handle_accepted_callback,
+            cancel_callback=self.cancel_callback,
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup())
+        self.get_logger().info("Action server has been started.")
+    
+    def goal_callback(self, goal_request: CountUntil.Goal):
+        self.get_logger().info("Received a goal")
+
+        # Policy: refuse new goal if current goal is still active
+        # with self.goal_lock_:
+        #     if self.goal_handle_ is not None and self.goal_handle_.is_active:
+        #         self.get_logger().info("A goal is already active, rejecting new goal")
+        #         return GoalResponse.REJECT
+
+        # Validate the goal request
+        if goal_request.target_number <= 0:
+            self.get_logger().info("Rejecting the goal")
+            return GoalResponse.REJECT
+        
+        # Policy: preempt existing goal when recieving new goal
+        # with self.goal_lock_:
+        #     if self.goal_handle_ is not None and self.goal_handle_.is_active:
+        #         self.get_logger().info("Abort current goal and accept new goal")
+        #         self.goal_handle_.abort()
+
+        self.get_logger().info("Accepting the goal")
+        return GoalResponse.ACCEPT
+    
+    def handle_accepted_callback(self, goal_handle: ServerGoalHandle):
+        with self.goal_lock_:
+            if self.goal_handle_ is not None:
+                self.goal_queue_.append(goal_handle)
+            else:
+                goal_handle.execute()
+
+    def cancel_callback(self, goal_handle: ServerGoalHandle):
+        self.get_logger().info("Received a cancel request")
+        return CancelResponse.ACCEPT
+    
+    def execute_callback(self, goal_handle: ServerGoalHandle):
+        with self.goal_lock_:
+            self.goal_handle_ = goal_handle
+
+        # Get request from goal
+        target_number = goal_handle.request.target_number
+        period = goal_handle.request.period
+
+        # Execute the action
+        self.get_logger().info("Executing the goal")
+        feedback = CountUntil.Feedback()
+        result = CountUntil.Result()
+        counter = 0
+        for i in range(target_number):
+            if not goal_handle.is_active:
+                result.reached_number = counter
+                self.process_next_goal_in_queue()
+                return result
+            if goal_handle.is_cancel_requested:
+                self.get_logger().info("Canceling the goal")
+                goal_handle.canceled()
+                result.reached_number = counter
+                self.process_next_goal_in_queue()
+                return result
+            counter += 1
+            self.get_logger().info(str(counter))
+            feedback.current_number = counter
+            goal_handle.publish_feedback(feedback)
+            time.sleep(period)
+        
+        # Once done, set goal final state
+        goal_handle.succeed()
+
+        # and send the result
+        result.reached_number = counter
+        self.process_next_goal_in_queue()
+        return result
+    
+    def process_next_goal_in_queue(self):
+        with self.goal_lock_:
+            if len(self.goal_queue_) > 0:
+                self.goal_queue_.pop(0).execute()
+            else:
+                self.goal_handle_ = None
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = CountUntilServerNode()
+    rclpy.spin(node, MultiThreadedExecutor())
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+***************************************************************************
+# ACTION CHALLENGE
+
+# ACTION INTERFACE CODE:
+
+# Goal
+int64 position  #m
+int64 velocity  # m/s
+---
+# Result
+int64 position
+string message
+---
+# Feedback
+int64 current_position
+
+# CMakeLists,txt:
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "action/MoveRobot.action"
+)
+
+# packages.xml:
+
+  <depend>rclpy</depend>
+  <depend>my_robot_interfaces</depend>
+  <depend>example_interfaces</depend>
+
+# setup.py:
+
+entry_points={
+        'console_scripts': [
+            "move_robot_server = actions_py.move_robot_server:main",
+            "move_robot_client = actions_py.move_robot_client:main"
+        ],
+    }
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select my_robot_interfaces
+source ~/ros2_ws/install/setup.bash
+ros2 interface show my_robot_interfaces/action/MoveRobot
+
+# ACTION SERVER
+
+cd ros2_ws/src/actions_py/actions_py/
+touch move_robot_server.py
+chmod +x move_robot_server.py
+rm -r __pycache__
+
+# POLICY: ABORT CURRENT GOAL
+# ACTION SERVER CODE:
+
+#!/usr/bin/env python3
+import rclpy
+import time
+import threading
+from rclpy.node import Node
+from rclpy.action import ActionServer
+from rclpy.action.server import ServerGoalHandle, GoalResponse, CancelResponse
+from my_robot_interfaces.action import MoveRobot
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+
+class MoveRobotServerNode(Node):
+    def __init__(self):
+        super().__init__("move_robot_server")
+        self.goal_lock_ = threading.Lock()
+        self.goal_handle_: ServerGoalHandle = None
+        self.robot_positions_ = 50
+        self.move_robot_server_ = ActionServer(
+            self,
+            MoveRobot,
+            "move_robot",
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback,
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup())
+        self.get_logger().info("Action server has been started")
+        self.get_logger().info("Robot position: " + str(self.robot_positions_))
+    
+    def goal_callback(self, goal_request: MoveRobot.Goal):
+        self.get_logger().info("Received a new goal")
+
+        if goal_request.position not in range(0, 100) or goal_request.velocity <= 0:
+            self.get_logger().warn("Invalid position/velocity, reject goal")
+            return GoalResponse.REJECT
+        
+        # New goal is valid, abort previous goal and accept new goal
+        if self.goal_handle_ is not None and self.goal_handle_.is_active:
+            self.goal_handle_.abort()
+        
+        self.get_logger().info("Accept goal")
+        return GoalResponse.ACCEPT
+    
+    def cancel_callback(self, goal_handle: ServerGoalHandle):
+        self.get_logger().info("Received a cancel request")
+        return CancelResponse.ACCEPT
+    
+    def execute_callback(self, goal_handle: ServerGoalHandle):
+        with self.goal_lock_:
+            self.goal_handle_ = goal_handle
+
+        goal_position = goal_handle.request.position
+        velocity = goal_handle.request.velocity
+
+        result = MoveRobot.Result()
+        feedback = MoveRobot.Feedback()
+
+        self.get_logger().info("Execute goal")
+        while rclpy.ok():
+            if not goal_handle.is_active:
+                result.position = self.robot_positions_
+                result.message = "Preempt by another goal"
+                return result
+            
+            if goal_handle.is_cancel_requested:
+                result.position = self.robot_positions_
+                if goal_position == self.robot_positions_:
+                    result.message = "Success after cancel request"
+                    goal_handle.succeed()
+                else:
+                    result.message = "Canceled"
+                    goal_handle.canceled()
+                return result
+            
+            diff = goal_position - self.robot_positions_
+
+            if diff == 0:
+                result.position = self.robot_positions_
+                result.message = "Success"
+                goal_handle.succeed()
+                return result
+            elif diff > 0:
+                if diff >= velocity:
+                    self.robot_positions_ += velocity
+                else:
+                    self.robot_positions_ += diff
+            else:
+                if abs(diff) >= velocity:
+                    self.robot_positions_ -= velocity
+                else:
+                    self.robot_positions_ -= abs(diff)
+            
+            self.get_logger().info("Robot position: " + str(self.robot_positions_))
+            feedback.current_position = self.robot_positions_
+            goal_handle.publish_feedback(feedback)
+
+            time.sleep(1.0)
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MoveRobotServerNode()
+    rclpy.spin(node, MultiThreadedExecutor())
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select actions_py --symlink-install
+source ~/ros2_ws/install/setup.bash
+ros2 run actions_py move_robot_server
+ros2 action send_goal /move_robot my_robot_interfaces/action/MoveRobot "{position: 76, velocity: 7}" --feedback
+
+# ACTION CLIENT
+
+cd ros2_ws/src/actions_py/actions_py/
+touch move_robot_client.py
+chmod +x move_robot_client.py
+rm -r __pycache__
+
+# ACTION CLIENT CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+from rclpy.action.client import ClientGoalHandle, GoalStatus
+from my_robot_interfaces.action import MoveRobot
+from example_interfaces.msg import Empty
+
+
+class MoveRobotClientNode(Node):
+    def __init__(self):
+        super().__init__("move_robot_client")
+        self.goal_handle_ = None
+        self.move_robot_client_ = ActionClient(self, MoveRobot, "move_robot")
+        self.cancel_subscriber_ = self.create_subscription(
+            Empty, "cancel_move", self.callback_cancel_move, 10)
+    
+    def send_goal(self, position, velocity):
+        self.move_robot_client_.wait_for_server()
+
+        goal = MoveRobot.Goal()
+        goal.position = position
+        goal.velocity = velocity
+
+        self.get_logger(). \
+            info("Send goal with position " + str(position) + " and velocity " + str(velocity))
+        self.move_robot_client_. \
+            send_goal_async(goal, feedback_callback=self.goal_feedback_callback). \
+            add_done_callback(self.goal_response_callback)
+    
+    def goal_response_callback(self, future):
+        self.goal_handle_: ClientGoalHandle = future.result()
+        if self.goal_handle_.accepted:
+            self.get_logger().info("Goal got accepted")
+            self.goal_handle_.get_result_async().add_done_callback(self.goal_result_callback)
+        else:
+            self.get_logger().info("Goal got rejected")
+        
+    def goal_result_callback(self, future):
+        status = future.result().status
+        result = future.result().result
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info("Succeeded")
+        elif status == GoalStatus.STATUS_ABORTED:
+            self.get_logger().info("Aborted")
+        elif status == GoalStatus.STATUS_CANCELED:
+            self.get_logger().info("Canceled")
+        self.get_logger().info("Position: " + str(result.position))
+        self.get_logger().info("Message: " + str(result.message))
+
+    def goal_feedback_callback(self, feedback_msg):
+        position = feedback_msg.feedback.current_position
+        self.get_logger().info("Feedback position: " + str(position))
+    
+    def callback_cancel_move(self, msg):
+        self.cancel_goal()
+    
+    def cancel_goal(self):
+        if self.goal_handle_ is not None:
+            self.get_logger().info("Send a cancel request")
+            self.goal_handle_.cancel_goal_async()
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MoveRobotClientNode()
+    node.send_goal(76, 1)
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select actions_py --symlink-install
+source ~/ros2_ws/install/setup.bash
+ros2 run actions_py move_robot_server
+ros2 run actions_py move_robot_client
+ros2 action send_goal /move_robot my_robot_interfaces/action/MoveRobot "{position: 55, velocity: 1}" --feedback
+ros2 topic pub -1 /cancel_move example_interfaces/msg/Empty "{}"
+
+***************************************************************************
+# LIFECYCLE NODE
+
+# LIFECYCLE CODE:
+
+#!/usr/bin/env python3
+import rclpy
+from rclpy.lifecycle import LifecycleNode
+from rclpy.lifecycle.node import LifecycleState, TransitionCallbackReturn
+from example_interfaces.msg import Int64
+
+
+class NumberPublisherNode(LifecycleNode):
+    def __init__(self):
+        super().__init__("number_publisher")
+        self.get_logger().info("IN constructor")
+        self.number_ = 1
+        self.publish_frequency_ = 1.0
+        self.number_publisher_ = None
+        self.number_timer_ = None
+
+    # Create ROS2 communication, connect to HW
+    def on_configure(self, previous_state: LifecycleState):
+        self.get_logger().info("IN on_configure")
+        self.number_publisher_ = self.create_lifecycle_publisher(Int64, "number", 10)
+        self.number_timer_ = self.create_timer(
+            1.0 / self.publish_frequency_, self.publish_number)
+        self.number_timer_.cancel()
+        raise Exception()
+        return TransitionCallbackReturn.SUCCESS
+
+    # Activate/Enable HW
+    def on_activate(self, previous_state: LifecycleState):
+        self.get_logger().info("IN on_activate")
+        self.number_timer_.reset()
+        return super().on_activate(previous_state)
+    
+    # Deactivate/Disable HW
+    def on_deactivate(self, previous_state: LifecycleState):
+        self.get_logger().info("IN on_deactivate")
+        self.number_timer_.cancel()
+        return super().on_deactivate(previous_state)
+
+    # Destroy ROS2 communication, disconnect from HW
+    def on_cleanup(self, previous_state: LifecycleState):
+        self.get_logger().info("IN on_cleanup")
+        self.destroy_lifecycle_publisher(self.number_publisher_)
+        self.destroy_timer(self.number_timer_)
+        return TransitionCallbackReturn.SUCCESS
+    
+    # Cleanup everything
+    def on_shutdown(self, previous_state: LifecycleState):
+        self.get_logger().info("IN on_shutdown")
+        self.destroy_lifecycle_publisher(self.number_publisher_)
+        self.destroy_timer(self.number_timer_)
+        return TransitionCallbackReturn.SUCCESS
+    
+    # Process errors, deactivate + cleanup
+    def on_error(self, previous_state: LifecycleState):
+        self.get_logger().info("IN on_error")
+        self.destroy_lifecycle_publisher(self.number_publisher_)
+        self.destroy_timer(self.number_timer_)
+        # do some checks, if ok, then return SUCCESS, if not FAILURE
+        return TransitionCallbackReturn.FAILURE
+
+    def publish_number(self):
+        msg = Int64()
+        msg.data = self.number_
+        self.number_publisher_.publish(msg)
+        self.number_ += 1
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberPublisherNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --packages-select lifecycle_py --symlink-install
+source ~/ros2_ws/install/setup.bash
+
+ros2 run lifecycle_py number_publisher
+ros2 lifecycle nodes
+ros2 lifecycle get /number_publisher
+ros2 lifecycle list /number_publisher
+ros2 lifecycle set /number_publisher configure
+ros2 lifecycle set /number_publisher activate
+ros2 topic echo /number_publisher/transition_event
+
+ros2 service list
+ros2 service type /number_publisher/get_state
+ros2 interface show lifecycle_msgs/srv/GetState
+ros2 service call /number_publisher/get_state lifecycle_msgs/srv/GetState "{}"
+
+ros2 service type /number_publisher/change_state
+ros2 interface show lifecycle_msgs/srv/ChangeState
+ros2 service call /number_publisher/change_state lifecycle_msgs/srv/ChangeState "{transition: {id: 1, label: 'configure'}}"
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,37 @@
+<launch>
+
+    <!-- Robot arguments -->
+    <arg name="urdf_path" default="$(find-pkg-share prestobot_description)/urdf/prestobot.urdf.xacro" />
+    <arg name="is_sim" default="false" />
+    <arg name="arduino_port" default="/dev/ttyUSB1" />
+    <!-- Hardware arguments -->
+    <arg name="ros2_control_config" default="$(find-pkg-share prestobot_controller)/config/prestobot_controller.yaml" />
+    <arg name="lidar_port" default="/dev/ttyUSB0" />
+    <!-- Navigation arguments -->
+    <arg name="output_topic" default="/diff_drive_controller/cmd_vel" />
+    <arg name="map_path" default="$(find-pkg-share prestobot_bringup)/maps/LR001.yaml" />
+
+    <!-- Launch robot description -->
+    <include file="$(find-pkg-share prestobot_description)/launch/robot_description.launch.xml" >
+        <arg name="urdf_path" value="$(var urdf_path)" />
+        <arg name="is_sim" value="$(var is_sim)" />
+        <arg name="port" value="$(var arduino_port)" />
+    </include>
+
+    <!-- Launch robot hardware -->
+    <include file="$(find-pkg-share prestobot_hardware)/launch/hardware.launch.xml" >
+        <arg name="ros2_control_config" value="$(var ros2_control_config)" />
+        <arg name="lidar_port" value="$(var lidar_port)" />
+    </include>
+
+    <!-- Launch robot controllers -->
+    <include file="$(find-pkg-share prestobot_controller)/launch/controller.launch.xml" />
+
+    <!-- Launch navigation -->
+    <include file="$(find-pkg-share prestobot_navigation)/launch/navigation.launch.xml" >
+        <arg name="use_sim_time" value="$(var is_sim)" />
+        <arg name="output_topic" value="$(var output_topic)" />
+        <arg name="map_path" value="$(var map_path)" />
+    </include>
+
+</launch>

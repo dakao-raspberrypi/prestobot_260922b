@@ -1,0 +1,1235 @@
+# WEBSITE
+
+https://wiki.ros.org/urdf/XML
+https://wiki.ros.org/urdf/XML/link
+https://wiki.ros.org/urdf/XML/joint
+https://github.com/ROBOTIS-GIT/turtlebot3
+https://github.com/ROBOTIS-GIT/turtlebot3/tree/jazzy
+https://github.com/ROBOTIS-GIT/turtlebot3/tree/jazzy/turtlebot3_description
+
+https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_bridge
+
+https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+
+# INSTALL GAZEBO
+
+sudo apt install ros-jazzy-ros-gz
+sudo apt install ros-jazzy-tf2-tools
+sudo apt install ros-jazzy-xacro
+sudo apt install ros-jazzy-joint-state-publisher-gui
+
+# INSTALL URDF TUTORIAL
+
+sudo apt install ros-jazzy-urdf-tutorial
+gedit ~/.bashrc
+
+PASTE: source /opt/ros/jazzy/setup.bash
+
+cd /opt/ros/jazzy/
+cd /opt/ros/jazzy/share/
+cd /opt/ros/jazzy/share/urdf_tutorial/
+cd /opt/ros/jazzy/share/urdf_tutorial/urdf/
+
+ros2 launch urdf_tutorial display.launch.py model:=08-macroed.urdf.xacro 
+ros2 launch urdf_tutorial display.launch.py model:=/opt/ros/jazzy/share/urdf_tutorial/urdf/08-macroed.urdf.xacro 
+
+ros2 topic list
+ros2 topic echo /tf
+rqt_graph
+ros2 run tf2_tools view_frames
+
+**************************************************************************************
+# CREATE URDF
+
+cd ~/
+touch my_robot.urdf
+code my_robot.urdf
+
+# URDF CODE:
+
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.6 0.4 0.2" />
+            </geometry>
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <link name="second_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.2" />
+            </geometry>
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="third_link">
+        <visual>
+            <geometry>
+                <box size="0.1 0.1 0.1" />
+            </geometry>
+            <origin xyz="0 0 0.05" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <joint name="base_second_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="second_link" />
+        <origin xyz="0 0 0.2" rpy="0 0 0" />
+    </joint>
+
+    <joint name="second_third_joint" type="fixed">
+        <parent link="second_link" />
+        <child link="third_link" />
+        <origin xyz="0 0 0.2" rpy="0 0 0" />
+    </joint>
+</robot>
+
+# RUN
+
+ros2 launch urdf_tutorial display.launch.py model:=my_robot.urdf
+ros2 launch urdf_tutorial display.launch.py model:=/home/khiem/my_robot.urdf
+
+**************************************************************************************
+# URDF JOINTS
+
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.6 0.4 0.2" />
+            </geometry>
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <link name="second_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.2" />
+            </geometry>
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <joint name="base_second_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="second_link" />
+        <origin xyz="0 0 0.2" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+        <limit lower="-1.57" upper="1.57" velocity="100" effort="100" />
+    </joint>
+
+</robot>
+
+**************************************************************************************
+# URDF WHEELS
+
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.6 0.4 0.2" />
+            </geometry>
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <link name="right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="-0.15 -0.225 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+
+**************************************************************************************
+# URDF CHALLENGE
+
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.6 0.4 0.2" />
+            </geometry>
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <link name="right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="caster_wheel_link">
+        <visual>
+            <geometry>
+                <sphere radius="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 0.1" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_wheel_link" />
+        <origin xyz="0.2 0 -0.05" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="-0.15 -0.225 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="-0.15 0.225 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+
+**************************************************************************************
+# ROBOT STATE PUBLISHER
+
+ros2 launch urdf_tutorial display.launch.py model:=/home/khiem/my_robot.urdf
+ros2 topic list
+ros2 node list
+ros2 param list /robot_state_publisher
+ros2 param get /robot_state_publisher robot_description
+
+ros2 run robot_state_publisher robot_state_publisher --ros-args -p robot_description:="$(xacro my_robot.urdf)"
+
+ros2 run joint_state_publisher_gui joint_state_publisher_gui
+
+ros2 run rviz2 rviz2
+
+Add -> RobotModel -> OK
+Add -> TF -> OK
+
+Global Options -> Fixed Frame -> base_footprint
+
+RobotModel -> Description Topic -> /robot_description
+
+**************************************************************************************
+# ROBOT DESCRIPTION PACKAGE
+
+cd ~/
+mkdir ros2_ws
+cd ~/ros2_ws
+mkdir src
+cd ~/ros2_ws/
+colcon build
+
+gedit ~/.bashrc
+
+source /opt/ros/jazzy/setup.bash
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+source /home/khiem/ros2_ws/install/setup.bash
+
+cd src/
+ros2 pkg create my_robot_description
+cd my_robot_description/
+rm -rf include/ src/
+mkdir urdf
+cd ~/
+cp my_robot.urdf ros2_ws/src/my_robot_description/urdf/
+
+rviz2 -> file -> Save Config As -> urdf_config.rviz
+
+rviz2 -> file -> Open Config -> urdf_config.rviz
+
+ros2 run rviz2 rviz2 -d urdf_config.rviz
+
+cp urdf_config.rviz ~/ros2_ws/src/my_robot_description/rviz/
+
+# CMakeLists.txt
+
+install(
+  DIRECTORY urdf launch rviz
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build
+source install/setup.bash
+cd ~/ros2_ws/install/my_robot_description/share/my_robot_description/urdf
+ls
+
+**************************************************************************************
+# XML LAUNCH FILE
+
+my_robot_description/launch/display.launch.xml
+
+# XML CODE:
+
+<launch>
+    <let name="urdf_path"
+         value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf" />
+    
+    <let name="rviz_config" 
+         value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz" />
+    
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description"
+               value="$(command 'xacro $(var urdf_path)')" />
+    </node>
+
+    <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" />
+
+    <node pkg="rviz2" exec="rviz2" output="screen"
+          args="-d $(var rviz_config)" />
+</launch>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build
+source install/setup.bash
+
+ros2 launch my_robot_description display.launch.xml
+
+**************************************************************************************
+# PYTHON LAUNCH FILE
+
+my_robot_description/launch/display.launch.py
+
+# PYTHON CODE:
+
+from launch import LaunchDescription
+from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.actions import Node
+from launch.substitutions import Command
+import os
+from ament_index_python.packages import get_package_share_path
+
+def generate_launch_description():
+
+    urdf_path = os.path.join(get_package_share_path('my_robot_description'),
+                             'urdf', 'my_robot.urdf')
+    rviz_config_path = os.path.join(get_package_share_path('my_robot_description'),
+                                    'rviz', 'urdf_config.rviz')
+    
+    robot_description = ParameterValue(Command(['xacro ', urdf_path]), value_type=str)
+
+    robot_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        parameters=[{'robot_description': robot_description}]
+    )
+
+    joint_state_publisher_gui_node = Node(
+        package="joint_state_publisher_gui",
+        executable="joint_state_publisher_gui"
+    )
+
+    rviz2_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        arguments=['-d', rviz_config_path]
+    )
+
+    return LaunchDescription([
+        robot_state_publisher_node,
+        joint_state_publisher_gui_node,
+        rviz2_node
+    ])
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build
+source install/setup.bash
+
+ros2 launch my_robot_description display.launch.py
+
+**************************************************************************************
+# XACRO
+
+rename my_robot.urdf -> my_robot.urdf.xacro
+
+# XML LAUNCH FILE:
+
+<launch>
+    <let name="urdf_path"
+         value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf.xacro" />
+    
+    <let name="rviz_config" 
+         value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz" />
+    
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description"
+               value="$(command 'xacro $(var urdf_path)')" />
+    </node>
+
+    <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" />
+
+    <node pkg="rviz2" exec="rviz2" output="screen"
+          args="-d $(var rviz_config)" />
+</launch>
+
+# PYTHON LAUNCH FILE:
+
+from launch import LaunchDescription
+from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.actions import Node
+from launch.substitutions import Command
+import os
+from ament_index_python.packages import get_package_share_path
+
+def generate_launch_description():
+
+    urdf_path = os.path.join(get_package_share_path('my_robot_description'),
+                             'urdf', 'my_robot.urdf.xacro')
+    rviz_config_path = os.path.join(get_package_share_path('my_robot_description'),
+                                    'rviz', 'urdf_config.rviz')
+    
+    robot_description = ParameterValue(Command(['xacro ', urdf_path]), value_type=str)
+
+    robot_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        parameters=[{'robot_description': robot_description}]
+    )
+
+    joint_state_publisher_gui_node = Node(
+        package="joint_state_publisher_gui",
+        executable="joint_state_publisher_gui"
+    )
+
+    rviz2_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        arguments=['-d', rviz_config_path]
+    )
+
+    return LaunchDescription([
+        robot_state_publisher_node,
+        joint_state_publisher_gui_node,
+        rviz2_node
+    ])
+
+# XACRO CODE:
+
+<?xml version="1.0"?>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="base_length" value="0.6" />
+    <xacro:property name="base_width" value="0.4" />
+    <xacro:property name="base_heigth" value="0.2" />
+    <xacro:property name="wheel_radius" value="0.1" />
+    <xacro:property name="wheel_length" value="0.05" />
+    
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_heigth}" />
+            </geometry>
+            <origin xyz="0 0 ${base_heigth / 2.0}" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <link name="right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="${pi / 2.0} 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="${pi / 2.0} 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="caster_wheel_link">
+        <visual>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_wheel_link" />
+        <origin xyz="${base_length / 3.0} 0 ${-wheel_radius / 2.0}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${-(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch my_robot_description display.launch.xml
+ros2 launch my_robot_description display.launch.py
+
+**************************************************************************************
+# CREATE FUNCTION WITH XACRO MACRO
+
+# MACRO EXAMPLE:
+    <xacro:macro name="example_macro" params="a b c">
+        <link name="dummy_link">
+            <visual>
+                <geometry>
+                    <box size="${a} ${b} ${c}" />
+                </geometry>
+            </visual>
+        </link>
+    </xacro:macro>
+
+    <xacro:example_macro a="2" b="3" c="4" />
+
+# MACRO CODE:
+
+<?xml version="1.0"?>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="base_length" value="0.6" />
+    <xacro:property name="base_width" value="0.4" />
+    <xacro:property name="base_heigth" value="0.2" />
+    <xacro:property name="wheel_radius" value="0.1" />
+    <xacro:property name="wheel_length" value="0.05" />
+    
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_heigth}" />
+            </geometry>
+            <origin xyz="0 0 ${base_heigth / 2.0}" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <xacro:macro name="wheel_link" params="prefix">
+        <link name="${prefix}_wheel_link">
+            <visual>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+                </geometry>
+                <origin xyz="0 0 0" rpy="${pi / 2.0} 0 0" />
+                <material name="gray" />
+            </visual>
+        </link>
+    </xacro:macro>
+
+    <xacro:wheel_link prefix="right" />
+    <xacro:wheel_link prefix="left" />
+
+    <link name="caster_wheel_link">
+        <visual>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_wheel_link" />
+        <origin xyz="${base_length / 3.0} 0 ${-wheel_radius / 2.0}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${-(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch my_robot_description display.launch.xml
+ros2 launch my_robot_description display.launch.py
+
+**************************************************************************************
+# URDF FILE IN URDF FILE
+
+# my_robot.urdf.xacro
+
+<?xml version="1.0"?>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="common_properties.xacro" />
+    <xacro:include filename="mobile_base.xacro" />
+
+</robot>
+
+# common_properties.xacro
+
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+</robot>
+
+# mobile_base.xacro
+
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="base_length" value="0.6" />
+    <xacro:property name="base_width" value="0.4" />
+    <xacro:property name="base_heigth" value="0.2" />
+    <xacro:property name="wheel_radius" value="0.1" />
+    <xacro:property name="wheel_length" value="0.05" />
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_heigth}" />
+            </geometry>
+            <origin xyz="0 0 ${base_heigth / 2.0}" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <xacro:macro name="wheel_link" params="prefix">
+        <link name="${prefix}_wheel_link">
+            <visual>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+                </geometry>
+                <origin xyz="0 0 0" rpy="${pi / 2.0} 0 0" />
+                <material name="gray" />
+            </visual>
+        </link>
+    </xacro:macro>
+
+    <xacro:wheel_link prefix="right" />
+    <xacro:wheel_link prefix="left" />
+
+    <link name="caster_wheel_link">
+        <visual>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_wheel_link" />
+        <origin xyz="${base_length / 3.0} 0 ${-wheel_radius / 2.0}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${-(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch my_robot_description display.launch.xml
+ros2 launch my_robot_description display.launch.py
+
+**************************************************************************************
+# GAZEBO
+
+sudo apt install ros-jazzy-ros-gz
+source /opt/ros/jazzy/setup.bash
+
+gz sim
+gz sim empty.sdf
+ros2 launch ros_gz_sim gz_sim.launch.py gz_args:=empty.sdf
+
+gz topic -l
+ros2 topic list
+
+**************************************************************************************
+# ADD INERTIA
+# ADD COLLISION TAGS
+
+# common_properties.xacro
+
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <material name="blue">
+        <color rgba="0 0 0.5 1" />
+    </material>
+
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <xacro:macro name="box_inertia" params="m x y z o_xyz o_rpy">
+        <inertial>
+            <mass value="${m}" />
+            <origin xyz="${o_xyz}" rpy="${o_rpy}" />
+            <inertia ixx="${(m/12) * (y*y + z*z)}" ixy="0" ixz="0"
+                     iyy="${(m/12) * (x*x + z*z)}" iyz="0"
+                     izz="${(m/12) * (x*x + y*y)}" />
+        </inertial>
+    </xacro:macro>
+
+    <xacro:macro name="cylinder_inertia" params="m r l o_xyz o_rpy">
+        <inertial>
+            <mass value="${m}" />
+            <origin xyz="${o_xyz}" rpy="${o_rpy}" />
+            <inertia ixx="${(m/12) * (3*r*r + l*l)}" ixy="0" ixz="0"
+                     iyy="${(m/12) * (3*r*r +l*l)}" iyz="0"
+                     izz="${(m/2) * (r*r)}" />
+        </inertial>
+    </xacro:macro>
+
+    <xacro:macro name="sphere_inertia" params="m r o_xyz o_rpy">
+        <inertial>
+            <mass value="${m}" />
+            <origin xyz="${o_xyz}" rpy="${o_rpy}" />
+            <inertia ixx="${(2*m/5) * (r*r)}" ixy="0" ixz="0"
+                     iyy="${(2*m/5) * (r*r)}" iyz="0"
+                     izz="${(2*m/5) * (r*r)}" />
+        </inertial>
+    </xacro:macro>
+
+</robot>
+
+# mobile_base.xacro
+
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="base_length" value="0.6" />
+    <xacro:property name="base_width" value="0.4" />
+    <xacro:property name="base_heigth" value="0.2" />
+    <xacro:property name="wheel_radius" value="0.1" />
+    <xacro:property name="wheel_length" value="0.05" />
+
+    <link name="base_footprint" />
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_heigth}" />
+            </geometry>
+            <origin xyz="0 0 ${base_heigth / 2.0}" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_heigth}" />
+            </geometry>
+            <origin xyz="0 0 ${base_heigth / 2.0}" rpy="0 0 0" />
+        </collision>
+        <xacro:box_inertia m="5.0" x="${base_length}" y="${base_width}" z="${base_heigth}"
+                           o_xyz="0 0 ${base_heigth / 2.0}" o_rpy="0 0 0" />
+    </link>
+
+    <xacro:macro name="wheel_link" params="prefix">
+        <link name="${prefix}_wheel_link">
+            <visual>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}" />
+                </geometry>
+                <origin xyz="0 0 0" rpy="${pi / 2.0} 0 0" />
+                <material name="gray" />
+            </visual>
+            <collision>
+                <geometry>
+                    <sphere radius="${wheel_radius}" />
+                </geometry>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+            </collision>
+            <xacro:cylinder_inertia m="1.0" r="${wheel_radius}" l="${wheel_length}"
+                                    o_xyz="0 0 0" o_rpy="${pi / 2.0} 0 0" />
+        </link>
+    </xacro:macro>
+
+    <xacro:wheel_link prefix="right" />
+    <xacro:wheel_link prefix="left" />
+
+    <link name="caster_wheel_link">
+        <visual>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+         <collision>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </collision>
+        <xacro:sphere_inertia m="0.5" r="${wheel_radius / 2.0}"
+                            o_xyz="0 0 0" o_rpy="0 0 0" />
+    </link>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_wheel_link" />
+        <origin xyz="${base_length / 3.0} 0 ${-wheel_radius / 2.0}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${-(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="${-base_length / 4.0} ${(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch my_robot_description display.launch.xml
+ros2 launch my_robot_description display.launch.py
+
+**************************************************************************************
+# SPAWN THE ROBOT IN GAZEBO
+
+ros2 run robot_state_publisher robot_state_publisher --ros-args -p robot_description:="$(xacro my_robot.urdf.xacro)"
+
+ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf -r"
+
+ros2 topic list
+ros2 run ros_gz_sim create -topic robot_description
+
+ros2 run rviz2 rviz2 -d ros2_ws/src/my_robot_description/rviz/urdf_config.rviz
+
+**************************************************************************************
+# LAUNCH FILE TO START ROBOT IN GAZEBO
+
+cd ~/ros2_ws/src/
+ros2 pkg create my_robot_bringup
+cd my_robot_bringup/
+rm -r include/ src/
+mkdir launch
+
+# my_robot_gazebo.launch.xml
+
+<launch>
+    <let name="urdf_path"
+         value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf.xacro" />
+    <let name="rviz_config" 
+         value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz" />
+    
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description"
+               value="$(command 'xacro $(var urdf_path)')" />
+    </node>
+
+    <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
+        <arg name="gz_args" value="empty.sdf -r" />
+    </include>
+
+    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description" />
+
+    <node pkg="rviz2" exec="rviz2" output="screen"
+          args="-d $(var rviz_config)" />
+</launch>
+
+# package.xml
+
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+# CMakeLists.txt
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch my_robot_bringup my_robot_gazebo.launch.xml
+
+**************************************************************************************
+# ADD GAZEBO PLUGIN TO CONTROL ROBOT
+
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <gazebo reference="caster_wheel_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+    
+    <gazebo>
+        <plugin
+            filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+            <left_joint>base_left_wheel_joint</left_joint>
+            <right_joint>base_right_wheel_joint</right_joint>
+            <wheel_separation>0.45</wheel_separation>
+            <wheel_radius>0.1</wheel_radius>
+            <frame_id>odom</frame_id>
+            <child_frame_id>base_footprint</child_frame_id>
+        </plugin>
+    </gazebo>
+
+    <gazebo>
+        <plugin
+            filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher">
+            <joint_name>base_left_wheel_joint</joint_name>
+            <joint_name>base_right_wheel_joint</joint_name>
+        </plugin>
+    </gazebo>
+
+</robot>
+
+# BUILD AND SOURCE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch my_robot_bringup my_robot_gazebo.launch.xml
+
+ros2 topic list 
+gz topic -l
+gz topic -i -t /clock
+gz topic -h
+rqt_graph
+ros2 topic info /cmd_vel
+ros2 interface show geometry_msgs/msg/Twist
+ros2 topic pub -r 1 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.5}"
+ros2 topic pub -r 1 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0}, angular: {z: 0.0}}"
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+# my_robot_bringup/config/gazebo_bridge.yaml
+
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/world/empty/model/my_robot/joint_state"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/tf"
+  gz_topic_name: "/model/my_robot/tf"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/cmd_vel"
+  gz_topic_name: "/model/my_robot/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+# my_robot_gazebo.launch.xml
+
+<launch>
+    <let name="urdf_path"
+         value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf.xacro" />
+    <let name="gazebo_config_path"
+         value="$(find-pkg-share my_robot_bringup)/config/gazebo_bridge.yaml" />
+    <let name="rviz_config" 
+         value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz" />
+    
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description"
+               value="$(command 'xacro $(var urdf_path)')" />
+    </node>
+
+    <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
+        <arg name="gz_args" value="empty.sdf -r" />
+    </include>
+
+    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description" />
+
+    <node pkg="ros_gz_bridge" exec="parameter_bridge">
+        <param name="config_file" value="$(var gazebo_config_path)" />
+    </node>
+
+    <node pkg="rviz2" exec="rviz2" output="screen"
+          args="-d $(var rviz_config)" />
+</launch>
+
+# mobile_base_gazebo.xacro
+
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <gazebo reference="caster_wheel_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+    
+    <gazebo>
+        <plugin
+            filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+            <left_joint>base_left_wheel_joint</left_joint>
+            <right_joint>base_right_wheel_joint</right_joint>
+            <wheel_separation>0.45</wheel_separation>
+            <wheel_radius>0.1</wheel_radius>
+            <frame_id>odom</frame_id>
+            <child_frame_id>base_footprint</child_frame_id>
+        </plugin>
+    </gazebo>
+
+    <gazebo>
+        <plugin
+            filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher">
+            <joint_name>base_left_wheel_joint</joint_name>
+            <joint_name>base_right_wheel_joint</joint_name>
+        </plugin>
+    </gazebo>
+
+</robot>
+
+# package.xml
+
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+# CMakeLists.txt
+
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# my_robot.urdf.xacro
+
+<?xml version="1.0"?>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="common_properties.xacro" />
+    <xacro:include filename="mobile_base.xacro" />
+    <xacro:include filename="mobile_base_gazebo.xacro" />
+
+</robot>
+
+
+
+
+
+
+
+
+
+

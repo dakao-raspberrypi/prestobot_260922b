@@ -1,0 +1,21 @@
+<launch>
+
+    <!-- Robot arguments -->
+    <arg name="ros2_control_config" default="$(find-pkg-share prestobot_controller)/config/prestobot_controller.yaml" />
+    <arg name="lidar_port" default="/dev/ttyUSB0" />
+
+    <!-- Controller manager -->
+    <node pkg="controller_manager" exec="ros2_control_node">
+        <param from="$(var ros2_control_config)" />
+    </node>
+
+    <!-- MPU6050 node -->
+    <node pkg="prestobot_py_pkg" exec="mpu6050_driver" />
+
+    <!-- Rplidar C1 -->
+    <include file="$(find-pkg-share sllidar_ros2)/launch/sllidar_c1_launch.py" >
+        <arg name="serial_port" value="$(var lidar_port)" />
+        <arg name="frame_id" value="base_scan" />
+    </include>
+
+</launch>

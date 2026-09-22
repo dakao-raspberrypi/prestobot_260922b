@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <gazebo reference="front_left_caster_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+    <gazebo reference="front_right_caster_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+    <gazebo reference="rear_left_caster_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+    <gazebo reference="rear_right_caster_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+    
+    <gazebo>
+        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(find prestobot_controller)/config/prestobot_controller.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <gazebo reference="base_scan">
+        <sensor name="gpu_lidar" type="gpu_lidar">
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <update_rate>10</update_rate>
+            <topic>/scan</topic>
+            <gz_frame_id>base_scan</gz_frame_id>
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>360</samples>
+                        <resolution>1.0</resolution>
+                        <min_angle>0.0</min_angle>
+                        <max_angle>6.283185307179586</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.12</min>
+                    <max>3.5</max>
+                    <resolution>0.015</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
+            </lidar>
+            <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+                <topic>lidar</topic>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="imu_link">
+        <sensor name="imu" type="imu">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <gz_frame_id>imu_link</gz_frame_id>
+            <topic>imu</topic>
+            <imu>
+                <angular_velocity>
+                    <x>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>2e-4</stddev>
+                        </noise>
+                    </x>
+                    <y>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>2e-4</stddev>
+                        </noise>
+                    </y>
+                    <z>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>2e-4</stddev>
+                        </noise>
+                    </z>
+                </angular_velocity>
+                <linear_acceleration>
+                    <x>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>1.7e-2</stddev>
+                        </noise>
+                    </x>
+                    <y>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>1.7e-2</stddev>
+                        </noise>
+                    </y>
+                    <z>
+                        <noise type="gaussian">
+                            <mean>0.0</mean>
+                            <stddev>1.7e-2</stddev>
+                        </noise>
+                    </z>
+                </linear_acceleration>
+            </imu>
+            <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu" />
+        </sensor>
+    </gazebo>
+
+</robot>

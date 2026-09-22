@@ -1,0 +1,21 @@
+<launch>
+
+    <!-- Robot arguments -->
+    <arg name="urdf_path" default="$(find-pkg-share prestobot_description)/urdf/prestobot.urdf.xacro" />
+    <arg name="is_sim" default="true" />
+    <!-- Let variables for cleaner paths and commands -->
+    <let name="rviz_config_path" value="$(find-pkg-share prestobot_description)/rviz/urdf_config.rviz" />
+
+    <!-- Launch robot description -->
+    <include file="$(find-pkg-share prestobot_description)/launch/robot_description.launch.xml" >
+        <arg name="is_sim" value="$(var is_sim)" />
+        <arg name="urdf_path" value="$(var urdf_path)" />
+    </include>
+
+    <!-- Fake joint state publisher -->
+    <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" />
+
+    <!-- RViz2 3D Visualizer -->
+    <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_config_path)" />
+
+</launch>

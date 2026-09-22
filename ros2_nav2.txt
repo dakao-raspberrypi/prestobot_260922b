@@ -1,0 +1,643 @@
+
+
+sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup ros-humble-turtlebot3*
+sudo apt install python3-colcon-common-extensions
+sudo apt install git
+sudo apt install terminator
+sudo snap install code --classic
+sudo apt install ros-humble-rmw-cyclonedds-cpp
+sudo apt install ros-humble-slam-toolbox
+sudo apt install ros-humble-nav2-simple-commander
+sudo apt install ros-humble-tf-transformations
+sudo apt install python3-transforms3d
+
+sudo apt install ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-turtlebot3* ros-jazzy-slam-toolbox ros-jazzy-nav2-simple-commander ros-jazzy-tf-transformations python3-transforms3d
+
+
+export TURTLEBOT3_MODEL=waffle
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+source /opt/ros/humble/setup.bash
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+source /home/khiem/ros2_ws/install/setup.bash
+
+
+printenv | grep TURTLE
+gazebo
+
+# SLAM
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True
+ros2 run turtlebot3_teleop teleop_keyboard
+ros2 run nav2_map_server map_saver_cli -f maps/my_map
+
+******************************************************************************************
+
+asus@asus-TUF:~$ ros2 topic list
+/camera/camera_info
+/camera/image_raw
+/camera/image_raw/compressed
+/camera/image_raw/compressedDepth
+/camera/image_raw/theora
+/clicked_point
+/clock
+/cmd_vel
+/constraint_list
+/imu
+/initialpose
+/joint_states
+/landmark_poses_list
+/map
+/map_updates
+/move_base_simple/goal
+/odom
+/parameter_events
+/performance_metrics
+/robot_description
+/rosout
+/scan
+/scan_matched_points2
+/submap_list
+/tf
+/tf_static
+/trajectory_node_list
+
+asus@asus-TUF:~$ ros2 service list
+/apply_joint_effort
+/apply_link_wrench
+/camera_driver/describe_parameters
+/camera_driver/get_parameter_types
+/camera_driver/get_parameters
+/camera_driver/list_parameters
+/camera_driver/set_parameters
+/camera_driver/set_parameters_atomically
+/cartographer_node/describe_parameters
+/cartographer_node/get_parameter_types
+/cartographer_node/get_parameters
+/cartographer_node/list_parameters
+/cartographer_node/set_parameters
+/cartographer_node/set_parameters_atomically
+/cartographer_occupancy_grid_node/describe_parameters
+/cartographer_occupancy_grid_node/get_parameter_types
+/cartographer_occupancy_grid_node/get_parameters
+/cartographer_occupancy_grid_node/list_parameters
+/cartographer_occupancy_grid_node/set_parameters
+/cartographer_occupancy_grid_node/set_parameters_atomically
+/clear_joint_efforts
+/clear_link_wrenches
+/delete_entity
+/finish_trajectory
+/gazebo/describe_parameters
+/gazebo/get_parameter_types
+/gazebo/get_parameters
+/gazebo/list_parameters
+/gazebo/set_parameters
+/gazebo/set_parameters_atomically
+/get_model_list
+/get_trajectory_states
+/pause_physics
+/read_metrics
+/reset_simulation
+/reset_world
+/robot_state_publisher/describe_parameters
+/robot_state_publisher/get_parameter_types
+/robot_state_publisher/get_parameters
+/robot_state_publisher/list_parameters
+/robot_state_publisher/set_parameters
+/robot_state_publisher/set_parameters_atomically
+/rviz2/describe_parameters
+/rviz2/get_parameter_types
+/rviz2/get_parameters
+/rviz2/list_parameters
+/rviz2/set_parameters
+/rviz2/set_parameters_atomically
+/set_camera_info
+/spawn_entity
+/start_trajectory
+/submap_query
+/teleop_keyboard/describe_parameters
+/teleop_keyboard/get_parameter_types
+/teleop_keyboard/get_parameters
+/teleop_keyboard/list_parameters
+/teleop_keyboard/set_parameters
+/teleop_keyboard/set_parameters_atomically
+/tf2_frames
+/trajectory_query
+/turtlebot3_diff_drive/describe_parameters
+/turtlebot3_diff_drive/get_parameter_types
+/turtlebot3_diff_drive/get_parameters
+/turtlebot3_diff_drive/list_parameters
+/turtlebot3_diff_drive/set_parameters
+/turtlebot3_diff_drive/set_parameters_atomically
+/turtlebot3_imu/describe_parameters
+/turtlebot3_imu/get_parameter_types
+/turtlebot3_imu/get_parameters
+/turtlebot3_imu/list_parameters
+/turtlebot3_imu/set_parameters
+/turtlebot3_imu/set_parameters_atomically
+/turtlebot3_joint_state/describe_parameters
+/turtlebot3_joint_state/get_parameter_types
+/turtlebot3_joint_state/get_parameters
+/turtlebot3_joint_state/list_parameters
+/turtlebot3_joint_state/set_parameters
+/turtlebot3_joint_state/set_parameters_atomically
+/turtlebot3_laserscan/describe_parameters
+/turtlebot3_laserscan/get_parameter_types
+/turtlebot3_laserscan/get_parameters
+/turtlebot3_laserscan/list_parameters
+/turtlebot3_laserscan/set_parameters
+/turtlebot3_laserscan/set_parameters_atomically
+/unpause_physics
+/write_state
+
+******************************************************************************************
+
+# Navigation
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=maps/my_map.yaml
+
+******************************************************************************************
+
+asus@asus-TUF:~$ ros2 topic list
+/amcl/transition_event
+/amcl_pose
+/behavior_server/transition_event
+/behavior_tree_log
+/bond
+/bt_navigator/transition_event
+/camera/camera_info
+/camera/image_raw
+/camera/image_raw/compressed
+/camera/image_raw/compressedDepth
+/camera/image_raw/theora
+/clicked_point
+/clock
+/cmd_vel
+/cmd_vel_nav
+/controller_server/transition_event
+/cost_cloud
+/diagnostics
+/downsampled_costmap
+/downsampled_costmap_updates
+/evaluation
+/global_costmap/clearing_endpoints
+/global_costmap/costmap
+/global_costmap/costmap_raw
+/global_costmap/costmap_updates
+/global_costmap/footprint
+/global_costmap/global_costmap/transition_event
+/global_costmap/published_footprint
+/global_costmap/voxel_grid
+/global_costmap/voxel_marked_cloud
+/goal_pose
+/imu
+/initialpose
+/joint_states
+/local_costmap/clearing_endpoints
+/local_costmap/costmap
+/local_costmap/costmap_raw
+/local_costmap/costmap_updates
+/local_costmap/footprint
+/local_costmap/local_costmap/transition_event
+/local_costmap/published_footprint
+/local_costmap/voxel_grid
+/local_costmap/voxel_marked_cloud
+/local_plan
+/map
+/map_server/transition_event
+/map_updates
+/marker
+/mobile_base/sensors/bumper_pointcloud
+/odom
+/parameter_events
+/particle_cloud
+/performance_metrics
+/plan
+/plan_smoothed
+/planner_server/transition_event
+/received_global_plan
+/robot_description
+/rosout
+/scan
+/smoother_server/transition_event
+/speed_limit
+/tf
+/tf_static
+/transformed_global_plan
+/velocity_smoother/transition_event
+/waypoint_follower/transition_event
+/waypoints
+
+asus@asus-TUF:~$ ros2 service list
+/amcl/change_state
+/amcl/describe_parameters
+/amcl/get_available_states
+/amcl/get_available_transitions
+/amcl/get_parameter_types
+/amcl/get_parameters
+/amcl/get_state
+/amcl/get_transition_graph
+/amcl/list_parameters
+/amcl/set_parameters
+/amcl/set_parameters_atomically
+/apply_joint_effort
+/apply_link_wrench
+/behavior_server/change_state
+/behavior_server/describe_parameters
+/behavior_server/get_available_states
+/behavior_server/get_available_transitions
+/behavior_server/get_parameter_types
+/behavior_server/get_parameters
+/behavior_server/get_state
+/behavior_server/get_transition_graph
+/behavior_server/list_parameters
+/behavior_server/set_parameters
+/behavior_server/set_parameters_atomically
+/bt_navigator/change_state
+/bt_navigator/describe_parameters
+/bt_navigator/get_available_states
+/bt_navigator/get_available_transitions
+/bt_navigator/get_parameter_types
+/bt_navigator/get_parameters
+/bt_navigator/get_state
+/bt_navigator/get_transition_graph
+/bt_navigator/list_parameters
+/bt_navigator/set_parameters
+/bt_navigator/set_parameters_atomically
+/bt_navigator_navigate_through_poses_rclcpp_node/describe_parameters
+/bt_navigator_navigate_through_poses_rclcpp_node/get_parameter_types
+/bt_navigator_navigate_through_poses_rclcpp_node/get_parameters
+/bt_navigator_navigate_through_poses_rclcpp_node/list_parameters
+/bt_navigator_navigate_through_poses_rclcpp_node/set_parameters
+/bt_navigator_navigate_through_poses_rclcpp_node/set_parameters_atomically
+/bt_navigator_navigate_to_pose_rclcpp_node/describe_parameters
+/bt_navigator_navigate_to_pose_rclcpp_node/get_parameter_types
+/bt_navigator_navigate_to_pose_rclcpp_node/get_parameters
+/bt_navigator_navigate_to_pose_rclcpp_node/list_parameters
+/bt_navigator_navigate_to_pose_rclcpp_node/set_parameters
+/bt_navigator_navigate_to_pose_rclcpp_node/set_parameters_atomically
+/camera_driver/describe_parameters
+/camera_driver/get_parameter_types
+/camera_driver/get_parameters
+/camera_driver/list_parameters
+/camera_driver/set_parameters
+/camera_driver/set_parameters_atomically
+/clear_joint_efforts
+/clear_link_wrenches
+/controller_server/change_state
+/controller_server/describe_parameters
+/controller_server/get_available_states
+/controller_server/get_available_transitions
+/controller_server/get_parameter_types
+/controller_server/get_parameters
+/controller_server/get_state
+/controller_server/get_transition_graph
+/controller_server/list_parameters
+/controller_server/set_parameters
+/controller_server/set_parameters_atomically
+/delete_entity
+/gazebo/describe_parameters
+/gazebo/get_parameter_types
+/gazebo/get_parameters
+/gazebo/list_parameters
+/gazebo/set_parameters
+/gazebo/set_parameters_atomically
+/get_model_list
+/global_costmap/clear_around_global_costmap
+/global_costmap/clear_entirely_global_costmap
+/global_costmap/clear_except_global_costmap
+/global_costmap/get_costmap
+/global_costmap/global_costmap/change_state
+/global_costmap/global_costmap/describe_parameters
+/global_costmap/global_costmap/get_available_states
+/global_costmap/global_costmap/get_available_transitions
+/global_costmap/global_costmap/get_parameter_types
+/global_costmap/global_costmap/get_parameters
+/global_costmap/global_costmap/get_state
+/global_costmap/global_costmap/get_transition_graph
+/global_costmap/global_costmap/list_parameters
+/global_costmap/global_costmap/set_parameters
+/global_costmap/global_costmap/set_parameters_atomically
+/is_path_valid
+/launch_ros_4515/describe_parameters
+/launch_ros_4515/get_parameter_types
+/launch_ros_4515/get_parameters
+/launch_ros_4515/list_parameters
+/launch_ros_4515/set_parameters
+/launch_ros_4515/set_parameters_atomically
+/lifecycle_manager_localization/describe_parameters
+/lifecycle_manager_localization/get_parameter_types
+/lifecycle_manager_localization/get_parameters
+/lifecycle_manager_localization/is_active
+/lifecycle_manager_localization/list_parameters
+/lifecycle_manager_localization/manage_nodes
+/lifecycle_manager_localization/set_parameters
+/lifecycle_manager_localization/set_parameters_atomically
+/lifecycle_manager_navigation/describe_parameters
+/lifecycle_manager_navigation/get_parameter_types
+/lifecycle_manager_navigation/get_parameters
+/lifecycle_manager_navigation/is_active
+/lifecycle_manager_navigation/list_parameters
+/lifecycle_manager_navigation/manage_nodes
+/lifecycle_manager_navigation/set_parameters
+/lifecycle_manager_navigation/set_parameters_atomically
+/local_costmap/clear_around_local_costmap
+/local_costmap/clear_entirely_local_costmap
+/local_costmap/clear_except_local_costmap
+/local_costmap/get_costmap
+/local_costmap/local_costmap/change_state
+/local_costmap/local_costmap/describe_parameters
+/local_costmap/local_costmap/get_available_states
+/local_costmap/local_costmap/get_available_transitions
+/local_costmap/local_costmap/get_parameter_types
+/local_costmap/local_costmap/get_parameters
+/local_costmap/local_costmap/get_state
+/local_costmap/local_costmap/get_transition_graph
+/local_costmap/local_costmap/list_parameters
+/local_costmap/local_costmap/set_parameters
+/local_costmap/local_costmap/set_parameters_atomically
+/map_server/change_state
+/map_server/describe_parameters
+/map_server/get_available_states
+/map_server/get_available_transitions
+/map_server/get_parameter_types
+/map_server/get_parameters
+/map_server/get_state
+/map_server/get_transition_graph
+/map_server/list_parameters
+/map_server/load_map
+/map_server/map
+/map_server/set_parameters
+/map_server/set_parameters_atomically
+/pause_physics
+/planner_server/change_state
+/planner_server/describe_parameters
+/planner_server/get_available_states
+/planner_server/get_available_transitions
+/planner_server/get_parameter_types
+/planner_server/get_parameters
+/planner_server/get_state
+/planner_server/get_transition_graph
+/planner_server/list_parameters
+/planner_server/set_parameters
+/planner_server/set_parameters_atomically
+/reinitialize_global_localization
+/request_nomotion_update
+/reset_simulation
+/reset_world
+/robot_state_publisher/describe_parameters
+/robot_state_publisher/get_parameter_types
+/robot_state_publisher/get_parameters
+/robot_state_publisher/list_parameters
+/robot_state_publisher/set_parameters
+/robot_state_publisher/set_parameters_atomically
+/rviz2/describe_parameters
+/rviz2/get_parameter_types
+/rviz2/get_parameters
+/rviz2/list_parameters
+/rviz2/set_parameters
+/rviz2/set_parameters_atomically
+/rviz_navigation_dialog_action_client/describe_parameters
+/rviz_navigation_dialog_action_client/get_parameter_types
+/rviz_navigation_dialog_action_client/get_parameters
+/rviz_navigation_dialog_action_client/list_parameters
+/rviz_navigation_dialog_action_client/set_parameters
+/rviz_navigation_dialog_action_client/set_parameters_atomically
+/set_camera_info
+/set_initial_pose
+/smoother_server/change_state
+/smoother_server/describe_parameters
+/smoother_server/get_available_states
+/smoother_server/get_available_transitions
+/smoother_server/get_parameter_types
+/smoother_server/get_parameters
+/smoother_server/get_state
+/smoother_server/get_transition_graph
+/smoother_server/list_parameters
+/smoother_server/set_parameters
+/smoother_server/set_parameters_atomically
+/spawn_entity
+/turtlebot3_diff_drive/describe_parameters
+/turtlebot3_diff_drive/get_parameter_types
+/turtlebot3_diff_drive/get_parameters
+/turtlebot3_diff_drive/list_parameters
+/turtlebot3_diff_drive/set_parameters
+/turtlebot3_diff_drive/set_parameters_atomically
+/turtlebot3_imu/describe_parameters
+/turtlebot3_imu/get_parameter_types
+/turtlebot3_imu/get_parameters
+/turtlebot3_imu/list_parameters
+/turtlebot3_imu/set_parameters
+/turtlebot3_imu/set_parameters_atomically
+/turtlebot3_joint_state/describe_parameters
+/turtlebot3_joint_state/get_parameter_types
+/turtlebot3_joint_state/get_parameters
+/turtlebot3_joint_state/list_parameters
+/turtlebot3_joint_state/set_parameters
+/turtlebot3_joint_state/set_parameters_atomically
+/turtlebot3_laserscan/describe_parameters
+/turtlebot3_laserscan/get_parameter_types
+/turtlebot3_laserscan/get_parameters
+/turtlebot3_laserscan/list_parameters
+/turtlebot3_laserscan/set_parameters
+/turtlebot3_laserscan/set_parameters_atomically
+/unpause_physics
+/velocity_smoother/change_state
+/velocity_smoother/describe_parameters
+/velocity_smoother/get_available_states
+/velocity_smoother/get_available_transitions
+/velocity_smoother/get_parameter_types
+/velocity_smoother/get_parameters
+/velocity_smoother/get_state
+/velocity_smoother/get_transition_graph
+/velocity_smoother/list_parameters
+/velocity_smoother/set_parameters
+/velocity_smoother/set_parameters_atomically
+/waypoint_follower/change_state
+/waypoint_follower/describe_parameters
+/waypoint_follower/get_available_states
+/waypoint_follower/get_available_transitions
+/waypoint_follower/get_parameter_types
+/waypoint_follower/get_parameters
+/waypoint_follower/get_state
+/waypoint_follower/get_transition_graph
+/waypoint_follower/list_parameters
+/waypoint_follower/set_parameters
+/waypoint_follower/set_parameters_atomically
+
+******************************************************************************************
+
+# SLAM
+
+# LAPTOP
+
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+ros2 run turtlebot3_teleop teleop_keyboard
+
+# RASPBERRY
+
+ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True
+ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True
+ros2 run rviz2 rviz2
+
+-> ADD -> TF, Map, LaserScan, RobotModel
+-> Map -> Topic: /map
+-> LaserScan -> Topic -> /scan
+-> RobotModel -> Description Topic -> /robot_description
+ros2 run nav2_map_server map_saver_cli -f maps/my_world
+
+******************************************************************************************
+
+# NAVIGATION
+
+# LAPTOP
+
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+# RASPBERRY
+
+ros2 launch nav2_bringup bringup_launch.py use_sim_time:=True map:=maps/my_world.yaml
+ros2 run rviz2 rviz2
+
+-> ADD -> TF, Map, LaserScan, RobotModel, Map: Global_Costmap, Map: Local_Costmap
+-> Map -> Topic: /map
+-> Map -> Topic -> Durability Policy: Transient Local
+-> LaserScan -> Topic -> /scan
+-> RobotModel -> Description Topic -> /robot_description
+-> Global costmap -> Topic: /global_costmap/costmap
+-> Global costmap -> Update Topic -> Color Scheme: costmap
+-> Local costmap -> Topic: /local_costmap/costmap
+-> Local costmap -> Update Topic -> Color Scheme: costmap
+
+******************************************************************************************
+
+# SET INITIAL POSE AND SEND GOAL
+
+#!/usr/bin/env python3
+import rclpy
+from nav2_simple_commander.robot_navigator import BasicNavigator
+from geometry_msgs.msg import PoseStamped
+import tf_transformations
+
+def main():
+    # --- Init
+    rclpy.init()
+    nav = BasicNavigator()
+
+    # --- Set initial pose
+    q_x, q_y, q_z, q_w = tf_transformations.quaternion_from_euler(0.0, 0.0, 0.0)
+    initial_pose = PoseStamped()
+    initial_pose.header.frame_id = 'map'
+    initial_pose.header.stamp = nav.get_clock().now().to_msg()
+    initial_pose.pose.position.x = 0.0
+    initial_pose.pose.position.y = 0.0
+    initial_pose.pose.position.z = 0.0
+    initial_pose.pose.orientation.x = q_x
+    initial_pose.pose.orientation.y = q_y
+    initial_pose.pose.orientation.z = q_z
+    initial_pose.pose.orientation.w = q_w
+    nav.setInitialPose(initial_pose)
+
+    # --- Wait for Nav2
+    nav.waitUntilNav2Active()
+
+    # --- Send Nav2 goal
+    q_x, q_y, q_z, q_w = tf_transformations.quaternion_from_euler(0.0, 0.0, 1.57)
+    goal_pose = PoseStamped()
+    goal_pose.header.frame_id = 'map'
+    goal_pose.header.stamp = nav.get_clock().now().to_msg()
+    goal_pose.pose.position.x = 3.5
+    goal_pose.pose.position.y = 1.0
+    goal_pose.pose.position.z = 0.0
+    goal_pose.pose.orientation.x = q_x
+    goal_pose.pose.orientation.y = q_y
+    goal_pose.pose.orientation.z = q_z
+    goal_pose.pose.orientation.w = q_w
+    nav.goToPose(goal_pose)
+
+    while not nav.isTaskComplete():
+        feedback = nav.getFeedback()
+        print(feedback)
+
+    print(nav.getResult())
+
+    # --- Shutdown
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+
+# TEMPLATE
+
+#!/usr/bin/env python3
+import rclpy
+from nav2_simple_commander.robot_navigator import BasicNavigator
+from geometry_msgs.msg import PoseStamped
+import tf_transformations
+
+def create_pose_stamped(navigator: BasicNavigator, position_x, position_y, orientation_z):
+    q_x, q_y, q_z, q_w = tf_transformations.quaternion_from_euler(0.0, 0.0, orientation_z)
+    pose = PoseStamped()
+    pose.header.frame_id = 'map'
+    pose.header.stamp = navigator.get_clock().now().to_msg()
+    pose.pose.position.x = position_x
+    pose.pose.position.y = position_y
+    pose.pose.position.z = 0.0
+    pose.pose.orientation.x = q_x
+    pose.pose.orientation.y = q_y
+    pose.pose.orientation.z = q_z
+    pose.pose.orientation.w = q_w
+    return pose
+
+def main():
+    # --- Init
+    rclpy.init()
+    nav = BasicNavigator()
+
+    # --- Set initial pose
+    initial_pose = create_pose_stamped(nav, 0.0, 0.0, 0.0)
+    nav.setInitialPose(initial_pose)
+
+    # --- Wait for Nav2
+    nav.waitUntilNav2Active()
+
+    # --- Send Nav2 goal
+    goal_pose1 = create_pose_stamped(nav, 3.5, 1.0, 1.57)
+    goal_pose2 = create_pose_stamped(nav, 2.5, 1.0, 0.0)
+    goal_pose3 = create_pose_stamped(nav, 1.5, 2.0, -1.57)
+
+    # --- Go to one pose
+    #nav.goToPose(goal_pose1)
+
+    # --- Follow waypoints
+    waypoints = [goal_pose1, goal_pose2, goal_pose3]
+    nav.followWaypoints(waypoints)
+
+    while not nav.isTaskComplete():
+        feedback = nav.getFeedback()
+        #print(feedback)
+    
+    print(nav.getResult())
+
+    # --- Shutdown
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+
+# RUN
+
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=maps/my_map.yaml
+./nav2_test.py
+
+
+
+
+
+
+
+
+
+
+
+

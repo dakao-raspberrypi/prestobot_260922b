@@ -1,0 +1,9 @@
+<library path="prestobot_hardware">
+    <class name="prestobot_hardware/PrestobotInterface"
+           type="prestobot_hardware::PrestobotInterface"
+           base_class_type="hardware_interface::SystemInterface">
+        <description>
+            Prestobot Hardware Interface
+        </description>
+    </class>
+</library>

@@ -1,0 +1,18 @@
+# LAUNCH
+
+ros2 launch prestobot_description display.launch.xml
+
+# OR
+
+ros2 run robot_state_publisher robot_state_publisher --ros-args \
+-p robot_description:="$(xacro /home/dakao/prestobot_ws/src/prestobot_description/urdf/prestobot.urdf.xacro is_sim:=true port:=/dev/ttyUSB0)"
+
+ros2 run joint_state_publisher_gui joint_state_publisher_gui
+
+ros2 run rviz2 rviz2
+
+ros2 run rviz2 rviz2 -d /home/dakao/prestobot_ws/src/prestobot_description/rviz/urdf_config.rviz
+
+ros2 run tf2_tools view_frames
+
+rqt_graph

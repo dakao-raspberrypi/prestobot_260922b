@@ -1,0 +1,31 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50
+
+    joint_state_broadcaster:  # name it whatever you want
+      type: joint_state_broadcaster/JointStateBroadcaster # from "name" inside plugin.xml file
+
+    diff_drive_controller:  # name it whatever you want (1)
+      type: diff_drive_controller/DiffDriveController # from ros_control/ros2_controller/diff_drive_controller/plugin.xml file
+
+diff_drive_controller:  # (1)
+  ros__parameters:
+    left_wheel_names: ["base_left_wheel_joint"] # from src/parameters.yaml file
+    right_wheel_names: ["base_right_wheel_joint"]
+
+    wheel_separation: 0.45
+    wheel_radius: 0.075
+
+    odom_frame_id: "odom"
+    base_frame_id: "base_footprint"
+
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+
+    enable_odom_tf: true
+    publish_rate: 50.0
+
+    linear.x.max_velocity: 1.0
+    linear.x.min_velocity: -1.0
+    angular.z.max_velocity: 1.0
+    angular.z.min_velocity: -1.0

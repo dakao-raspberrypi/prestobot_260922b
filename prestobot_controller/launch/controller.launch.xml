@@ -1,0 +1,9 @@
+<launch>
+
+    <!-- Joint state broadcaster controller -->
+    <node pkg="controller_manager" exec="spawner" args="joint_state_broadcaster" />
+
+    <!-- Diff drive controller -->
+    <node pkg="controller_manager" exec="spawner" args="diff_drive_controller" />
+
+</launch>

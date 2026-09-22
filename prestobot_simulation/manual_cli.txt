@@ -1,0 +1,13 @@
+sudo apt install ros-jazzy-ros-gz
+
+sudo apt install ros-jazzy-gz-ros2-control
+
+ros2 launch prestobot_simulation gazebo.launch.xml
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true
+
+ros2 topic pub -1 /arm_joints_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.4, 1.4]}"
+
+ros2 run prestobot_py_pkg topic_relay --ros-args -p input_topic:=/cmd_vel -p output_topic:=/diff_drive_controller/cmd_vel -p message_type:='geometry_msgs/msg/TwistStamped'
+
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox'

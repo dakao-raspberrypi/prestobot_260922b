@@ -1,0 +1,44 @@
+<launch>
+
+    <!-- Robot arguments -->
+    <arg name="urdf_path" default="$(find-pkg-share prestobot_description)/urdf/prestobot.urdf.xacro" />
+    <arg name="is_sim" default="true" />
+    <!-- Simulation arguments -->
+    <arg name="world_path" default="$(find-pkg-share prestobot_simulation)/worlds/hallway.world"/>
+    <arg name="x_pose" default="-33.0" />
+    <arg name="y_pose" default="-16.0" />
+    <arg name="z_pose" default="0.01" />
+    <!-- Navigation arguments -->
+    <arg name="output_topic" default="/diff_drive_controller/cmd_vel" />
+    <arg name="map_path" default="$(find-pkg-share prestobot_navigation)/maps/map.yaml" />
+    <!-- Let variables for cleaner paths and commands -->
+    <let name="rviz_config_path" value="$(find-pkg-share prestobot_navigation)/rviz/navigation_config.rviz" />
+
+    <!-- Launch robot description -->
+    <include file="$(find-pkg-share prestobot_description)/launch/robot_description.launch.xml" >
+        <arg name="urdf_path" value="$(var urdf_path)" />
+        <arg name="is_sim" value="$(var is_sim)" />
+    </include>
+
+    <!-- Launch robot simulation -->
+    <include file="$(find-pkg-share prestobot_simulation)/launch/gazebo.launch.xml" >
+        <arg name="world_path" value="$(var world_path)" />
+        <arg name="x_pose" value="$(var x_pose)" />
+        <arg name="y_pose" value="$(var y_pose)" />
+        <arg name="z_pose" value="$(var z_pose)" />
+    </include>
+
+    <!-- Launch robot controllers -->
+    <include file="$(find-pkg-share prestobot_controller)/launch/controller.launch.xml" />
+
+    <!-- Launch navigation -->
+    <include file="$(find-pkg-share prestobot_navigation)/launch/navigation.launch.xml" >
+        <arg name="use_sim_time" value="$(var is_sim)" />
+        <arg name="output_topic" value="$(var output_topic)" />
+        <arg name="map_path" value="$(var map_path)" />
+    </include>
+
+    <!-- RViz2 3D Visualizer -->
+    <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_config_path)" />
+
+</launch>

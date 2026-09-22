@@ -1,0 +1,47 @@
+# LAUNCH
+
+ros2 launch prestobot_controller prestobot.launch.xml
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true
+
+# OR
+
+ros2 run robot_state_publisher robot_state_publisher --ros-args -p robot_description:="$(xacro /home/dakao/prestobot_ws/src/prestobot_description/urdf/prestobot.urdf.xacro)"
+
+ros2 run controller_manager ros2_control_node --ros-args --params-file /home/dakao/prestobot_ws/src/prestobot_controller/config/prestobot_controller.yaml
+
+ros2 run controller_manager spawner joint_state_broadcaster
+
+ros2 run controller_manager spawner diff_drive_controller
+
+ros2 run rviz2 rviz2 -d /home/dakao/prestobot_ws/src/prestobot_description/rviz/urdf_config.rviz
+
+ros2 node list
+
+ros2 topic list
+
+ros2 topic info /diff_drive_controller/cmd_vel
+
+ros2 interface show geometry_msgs/msg/TwistStamped
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true
+
+rqt_graph
+
+ros2 control list_controllers
+
+ros2 control list_controller_types
+
+ros2 control list_hardware_interfaces
+
+ros2 control list_hardware_components
+
+# CONTROLLER
+
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox'
+
+ros2 run twist_stamper twist_stamper --ros-args -r cmd_vel_in:=/cmd_vel -r cmd_vel_out:=/diff_drive_controller/cmd_vel
+
+ros2 run twist_stamper twist_stamper --ros-args -r cmd_vel_in:=/cmd_vel -r cmd_vel_out:=/diff_drive_controller/cmd_vel -p use_sim_time:=true
+
+ros2 run topic_tools relay --ros-args -p input_topic:=/cmd_vel  -p output_topic:=/diff_drive_controller/cmd_vel

@@ -1,0 +1,44 @@
+# GITHUB
+
+https://github.com/Slamtec/rplidar_ros/tree/ros2
+
+# FIX STDIR
+sudo apt update
+sudo apt list --upgradable
+sudo apt upgrade
+
+# CREATE WORKSPACE
+
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+
+# CLONE
+
+git clone -b ros2 https://github.com/Slamtec/rplidar_ros.git
+
+# BUILD
+
+cd ~/ros2_ws/
+source /opt/ros/jazzy/setup.bash
+colcon build --symlink-install
+
+# OR
+
+cd ~/
+gedit .bashrc
+PASTE
+source /opt/ros/jazzy/setup.bash
+source ~/ros2_ws/install/setup.bash
+CLOSE
+
+cd ~/ros2_ws/
+colcon build --symlink-install
+
+sudo dmesg
+CHECK ttyUSB0
+
+sudo chmod 777 /dev/ttyUSB0
+
+# LAUNCH LIDAR C1
+
+ros2 launch rplidar_ros view_rplidar_c1_launch.py
